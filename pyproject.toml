@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steeloptimizerjm"
+version = "1.0.0"
+description = "AI Copilot for structural steel optimization and frame design"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.23", "jmstructural-common"]
+
+[project.optional-dependencies]
+perf = [
+    "numba>=0.59",  # acelera el non-dominated sort de NSGA-II (nsga2_run(fast=True))
+]
+test = [
+    "pytest>=7.0",
+    "pytest-timeout>=2.1",
+    "pytest-cov>=4.0",
+    "httpx>=0.24",
+]
+api = [
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.23",
+    "pydantic>=2.0",
+    "httpx>=0.25",
+]
+optimize = [
+    "scipy>=1.10",
+]
+
+[tool.setuptools.packages.find]
+include = ["steeloptimizerjm*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+"steeloptimizerjm" = ["data/*.csv"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow",
+    "integration: integration tests",
+    "api: tests REST API endpoints",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["steeloptimizerjm"]
+omit = ["*/__pycache__/*", "*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
+skip_empty = true
+
+[tool.uv.sources]
+jmstructural-common = { workspace = true }
