@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "AI Copilot for structural steel optimization and frame design"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.23", "jmstructural-common"]
+dependencies = ["numpy>=1.23", "numba>=0.59", "jmstructural-common"]
 
 [project.optional-dependencies]
 perf = [

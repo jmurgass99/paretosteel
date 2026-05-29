@@ -8,6 +8,7 @@ Instalar con::
 """
 try:
     from pydantic import BaseModel, Field
+    from typing import Optional
 except ImportError as exc:  # pragma: no cover
     from ..exceptions import DependencyError
     raise DependencyError(
@@ -57,6 +58,22 @@ class ColumnOptimizeBody(BaseModel):
     section_family: str = "W"
     max_weight_kg_m: float = 200.0
 
+
+class ParetoGroupPayload(BaseModel):
+    name: str
+    length_total: float = Field(..., gt=0.0)
+    min_Ix: float = Field(0.0, ge=0.0)
+    min_A: float = Field(0.0, ge=0.0)
+    family_filter: Optional[str] = None
+    country: str = "DEFAULT"
+    steel_grade: str = "average_global"
+
+
+class ParetoOptimizePayload(BaseModel):
+    groups: list[ParetoGroupPayload]
+    population_size: int = Field(40, ge=10, le=200)
+    n_generations: int = Field(30, ge=5, le=100)
+    random_seed: int = 42
 
 
 def create_router():
@@ -164,6 +181,22 @@ def create_router():
             "notes": list(res.notes),
         }
 
+    @router.post("/api/steel-opt/pareto-lca")
+    def post_pareto_lca(body: ParetoOptimizePayload) -> dict:
+        """Optimización multiobjetivo Pareto: costo vs huella de carbono."""
+        from ..pareto_lca import ParetoOptimizeInput, ParetoGroupSpec, run_pareto_lca_optimizer
+        try:
+            inp = ParetoOptimizeInput(
+                groups=[ParetoGroupSpec(**g.model_dump()) for g in body.groups],
+                population_size=body.population_size,
+                n_generations=body.n_generations,
+                random_seed=body.random_seed,
+            )
+            res = run_pareto_lca_optimizer(inp)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        return res.model_dump()
+
     return router
 
 
@@ -186,4 +219,3 @@ def create_app():
 
 
 __all__ = ["create_app", "create_router"]
-
