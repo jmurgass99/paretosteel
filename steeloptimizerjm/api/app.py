@@ -129,7 +129,7 @@ def create_router():
     def get_catalog(family: str | None = Query(default=None)) -> dict:
         return {"profiles": list_catalog(family=family)}
 
-    @router.get("/health")
+    @router.get("/api/optimizer/health")
     def health() -> dict:
         return {"status": "ok"}
 

@@ -49,7 +49,7 @@ def test_ga_endpoint_bad_config(client: TestClient) -> None:
 
 
 def test_health_endpoint(client: TestClient) -> None:
-    r = client.get("/health")
+    r = client.get("/api/optimizer/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
 
