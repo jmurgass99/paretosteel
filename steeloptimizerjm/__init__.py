@@ -47,3 +47,5 @@ __all__ = [
     "DEColumnResult",
     "ParetoResult",
 ]
+
+from . import section_bridge
