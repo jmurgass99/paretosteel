@@ -99,12 +99,14 @@ def run_pareto_lca_optimizer(inp: ParetoOptimizeInput) -> ParetoOptimizeOutput:
             idx = max(0, min(idx, len(catalog) - 1))
             profile = catalog[idx]
             
-            # Verificación de restricciones
-            # Ix en catalogs está en cm4. A en cm2.
-            if profile.Ix < g_spec.min_Ix:
-                penalty += (g_spec.min_Ix - profile.Ix) * 10.0
-            if profile.A < g_spec.min_A:
-                penalty += (g_spec.min_A - profile.A) * 100.0
+            # Verificación de restricciones: SteelProfile almacena Ix en m4 y A en m2
+            prof_Ix_cm4 = profile.Ix * 1e8 if profile.Ix < 1.0 else profile.Ix
+            prof_A_cm2 = profile.A * 1e4 if profile.A < 1.0 else profile.A
+
+            if prof_Ix_cm4 < g_spec.min_Ix:
+                penalty += (g_spec.min_Ix - prof_Ix_cm4) * 10.0
+            if prof_A_cm2 < g_spec.min_A:
+                penalty += (g_spec.min_A - prof_A_cm2) * 100.0
                 
             # Volumetría y peso
             w_total = profile.weight_per_m * g_spec.length_total
@@ -133,10 +135,11 @@ def run_pareto_lca_optimizer(inp: ParetoOptimizeInput) -> ParetoOptimizeOutput:
         bounds=bounds,
         pop_size=inp.population_size,
         n_gen=inp.n_generations,
-        seed=inp.random_seed
+        seed=inp.random_seed,
     )
+
     
-    # 4. Extraer y filtrar solo las soluciones dominantes únicas y factibles
+    # 4. Extraer soluciones no duplicadas de la última generación
     solutions_dict = {}
     
     for ind in final_population:
@@ -155,11 +158,11 @@ def run_pareto_lca_optimizer(inp: ParetoOptimizeInput) -> ParetoOptimizeOutput:
             assignment[g_spec.name] = profile.designation
             total_weight += profile.weight_per_m * g_spec.length_total
             
-            if profile.Ix < g_spec.min_Ix or profile.A < g_spec.min_A:
-                feasible = True  # La factibilidad se verifica a nivel macro de penalización, pero lo re-verificamos estricto
-                # Si no cumple, lo marcamos infactible
-                if profile.Ix < g_spec.min_Ix or profile.A < g_spec.min_A:
-                    feasible = False
+            prof_Ix_cm4 = profile.Ix * 1e8 if profile.Ix < 1.0 else profile.Ix
+            prof_A_cm2 = profile.A * 1e4 if profile.A < 1.0 else profile.A
+
+            if prof_Ix_cm4 < g_spec.min_Ix or prof_A_cm2 < g_spec.min_A:
+                feasible = False
                     
         # Re-calcular costos reales limpios sin penalización
         real_cost = 0.0
@@ -186,14 +189,32 @@ def run_pareto_lca_optimizer(inp: ParetoOptimizeInput) -> ParetoOptimizeOutput:
                 feasible=feasible
             )
             
-    # Filtrar solo factibles si las hay, ordenar por costo ascendente
+    # Filtrar solo factibles si las hay
     all_sols = list(solutions_dict.values())
     feasible_sols = [s for s in all_sols if s.feasible]
-    
-    output_sols = feasible_sols if feasible_sols else all_sols
-    output_sols = sorted(output_sols, key=lambda s: s.total_cost_USD)
-    
+    pool = feasible_sols if feasible_sols else all_sols
+
+    # Filtro estricto de no-dominancia de Pareto (Costo vs CO2)
+    pareto_front: list[ParetoSolution] = []
+    for candidate in pool:
+        is_dominated = False
+        for other in pool:
+            if other is candidate:
+                continue
+            # other domina a candidate si es <= en ambos objetivos y estrictamente < en al menos uno
+            c_le = other.total_cost_USD <= candidate.total_cost_USD
+            co2_le = other.total_co2_tCO2 <= candidate.total_co2_tCO2
+            strictly_better = (other.total_cost_USD < candidate.total_cost_USD) or (other.total_co2_tCO2 < candidate.total_co2_tCO2)
+            if c_le and co2_le and strictly_better:
+                is_dominated = True
+                break
+        if not is_dominated:
+            pareto_front.append(candidate)
+
+    output_sols = sorted(pareto_front, key=lambda s: s.total_cost_USD)
+
     return ParetoOptimizeOutput(
         n_solutions=len(output_sols),
         solutions=output_sols
     )
+
