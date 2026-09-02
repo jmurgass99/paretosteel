@@ -46,9 +46,15 @@ from .bracing import (
     SteelBraceSection,
     BracingSystemDemand,
     SteelBraceResult,
+    ChevronBeamDemand,
+    GussetPlateResult,
     calculate_effective_lengths,
     aisc_e3_critical_stress,
     design_steel_brace,
+    calculate_chevron_beam_unbalanced_demand,
+    calc_shear_lag_factor_U,
+    calc_net_effective_area,
+    check_gusset_plate,
 )
 
 __all__ = [
@@ -88,9 +94,15 @@ __all__ = [
     "SteelBraceSection",
     "BracingSystemDemand",
     "SteelBraceResult",
+    "ChevronBeamDemand",
+    "GussetPlateResult",
     "calculate_effective_lengths",
     "aisc_e3_critical_stress",
     "design_steel_brace",
+    "calculate_chevron_beam_unbalanced_demand",
+    "calc_shear_lag_factor_U",
+    "calc_net_effective_area",
+    "check_gusset_plate",
 ]
 
 from . import section_bridge

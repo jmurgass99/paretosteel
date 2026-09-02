@@ -139,3 +139,190 @@ def test_golden_x_brace_tension_compression_asymmetry():
     # Resistencia esperada a tracción T_exp = Ry * Fy * Ag = 1.10 * 345 * 5000 / 1000 = 1897.5 kN
     assert res.expected_tension_capacity_kN == pytest.approx(1897.5, abs=1.0)
     assert res.slenderness_seismic_status == "OK"
+
+
+def test_golden_chevron_unbalanced_beam_demand_f2_3():
+    """GOLDEN. Demanda vertical por carga desequilibrada en vigas de arriostramiento Chevron según AISC 341-16 §F2.3.
+
+    Fuente Normativa:
+      - AISC 341-16: "Seismic Provisions for Structural Steel Buildings".
+      - Sección F2.3: Required Strength of Beams in Chevron Braced Frames (SCBF).
+        * T_exp = Ry · Fy · Ag.
+        * P_post = 0.30 · P_exp (resistencia residual en compresión tras pandeo cíclico).
+        * Carga vertical desequilibrada: P_desequilibrio = (T_exp - 0.30 · P_exp) · sen(θ).
+        * Momento flector en el centro del vano de la viga: M = P_desequilibrio · L_beam / 4.
+
+    Derivación Analítica a Mano:
+      Diagonal: Ag = 4000 mm², Fy = 345 MPa, Ry = 1.10 -> Ry*Fy = 379.5 MPa.
+      T_exp = 1.10 * 345 * 4000 / 1000 = 1518.0 kN.
+      Supongamos P_exp = 1000.0 kN (calculado con curva inelástica AISC E3 con Ry*Fy).
+      P_post = 0.30 * 1000.0 = 300.0 kN.
+      Ángulo con la horizontal: θ = 45.0° -> sen(45°) = 0.707107, cos(45°) = 0.707107.
+
+      P_desequilibrio_v = (1518.0 - 300.0) * sen(45°) = 1218.0 * 0.707107 = 861.256 kN.
+      Viga de luz L_beam = 6.0 m:
+      M_beam = 861.256 * 6.0 / 4 = 1291.884 kN·m.
+
+    Invariante Crítico:
+      En el análisis elástico lateral puro, la fuerza vertical en el centro de la viga es prácticamente nula
+      (ej. 20.0 kN por asimetrías elásticas menores).
+      La demanda sísmica por capacidad con desequilibrio post-pandeo (861.3 kN) es MASIVA (>40 veces mayor).
+    """
+    from steeloptimizerjm.bracing import (
+        calculate_chevron_beam_unbalanced_demand,
+    )
+
+    sec = SteelBraceSection(
+        A_mm2=4000.0,
+        rx_mm=75.0,
+        ry_mm=45.0,
+        length_mm=5000.0,
+        Fy_MPa=345.0,
+        Ry=1.10,
+    )
+    dem = BracingSystemDemand(
+        Pu_tension_kN=500.0,
+        Pu_compression_kN=500.0,
+        theta_deg=45.0,
+    )
+    brace_res = design_steel_brace(sec, dem, configuration="CHEVRON_V")
+
+    # Demanda elástica de referencia en el análisis de fuerzas laterales (pequeña o nula)
+    elastic_v = 15.0  # kN
+
+    unbalanced = calculate_chevron_beam_unbalanced_demand(
+        brace_result=brace_res,
+        theta_deg=45.0,
+        beam_span_mm=6000.0,
+        elastic_vertical_demand_kN=elastic_v,
+    )
+
+    # 1. T_exp y P_post-buckling
+    T_exp_expected = 1.10 * 345.0 * 4000.0 / 1000.0  # 1518.0 kN
+    assert unbalanced.T_exp_kN == pytest.approx(T_exp_expected, rel=1e-5)
+    assert unbalanced.P_post_buckling_kN == pytest.approx(0.30 * brace_res.expected_compression_capacity_kN, rel=1e-5)
+
+    # 2. Carga vertical desequilibrada exacta
+    sin45 = math.sin(math.radians(45.0))
+    expected_P_v = (T_exp_expected - 0.30 * brace_res.expected_compression_capacity_kN) * sin45
+    assert unbalanced.P_unbalanced_vertical_kN == pytest.approx(expected_P_v, rel=1e-5)
+
+    # 3. Momento en la viga biapoyada
+    expected_M = expected_P_v * 6.0 / 4.0
+    assert unbalanced.M_beam_midspan_kNm == pytest.approx(expected_M, rel=1e-5)
+
+    # 4. Invariante discriminante: Demanda desequilibrada >> Análisis elástico
+    assert unbalanced.P_unbalanced_vertical_kN > 30.0 * elastic_v
+    assert unbalanced.amplification_over_elastic > 30.0
+
+
+def test_golden_shear_lag_factor_table_d3_1():
+    """GOLDEN. Factor de retraso de cortante U y área neta efectiva Ae según AISC 360-16 Tabla D3.1.
+
+    Fuente Normativa:
+      - AISC 360-16: "Specification for Structural Steel Buildings".
+      - Capítulo D: Design of Members for Tension.
+        * §D2: Tensile Rupture in Net Section: Pn = Fu · Ae.
+        * §D3: Effective Net Area: Ae = An · U.
+        * Tabla D3.1 (Shear Lag Factors for Connections to Tension Members):
+          - Caso 1: Todos los elementos conectados directamente -> U = 1.0.
+          - Caso 2: Conexión atornillada/soldada con transmisión por algunos elementos: U = 1 - x_bar / L.
+          - Caso 7: Perfiles W conectados por las alas:
+              * bf >= (2/3)·d -> U = 0.90
+              * bf < (2/3)·d  -> U = 0.85
+
+    Derivación a Mano:
+      Angular L 150x100x12 conectado solo por el ala larga (150 mm) a chapa de nudo:
+        x_bar = 25.0 mm (distancia del plano de conexión al centroide del angular).
+        Longitud de la hilera de pernos: L_conn = 200.0 mm.
+        U_caso2 = 1.0 - 25.0 / 200.0 = 1.0 - 0.125 = 0.875.
+        Área bruta Ag = 2860 mm², agujeros de 2 pernos d=22+2=24 mm en ala de 12 mm:
+        An = 2860 - 24 * 12 = 2572 mm².
+        Ae = 2572 * 0.875 = 2250.5 mm².
+        Si se omitiera U (asumiendo U=1.0), se sobreestimaría la capacidad en +14.3% del lado INSEGURO.
+    """
+    from steeloptimizerjm.bracing import (
+        calc_net_effective_area,
+        calc_shear_lag_factor_U,
+    )
+
+    # Caso 1: Conexión total directa
+    assert calc_shear_lag_factor_U(case=1) == 1.0
+
+    # Caso 2: Conexión excéntrica
+    U2 = calc_shear_lag_factor_U(case=2, x_bar_mm=25.0, L_conn_mm=200.0)
+    assert U2 == pytest.approx(0.875, rel=1e-6)
+
+    Ag = 2860.0
+    An = 2572.0
+    Ae, ratio = calc_net_effective_area(Ag, An, U2)
+    assert Ae == pytest.approx(2572.0 * 0.875, rel=1e-5)
+    assert ratio == pytest.approx(2250.5 / 2860.0, rel=1e-4)
+
+    # Caso 7: Perfil W
+    # W14x90: d = 356 mm, bf = 368 mm -> bf >= (2/3)*d (368 >= 237.3 mm) -> U = 0.90
+    assert calc_shear_lag_factor_U(case=7, bf_mm=368.0, d_mm=356.0) == 0.90
+    # W18x35: d = 450 mm, bf = 152 mm -> bf < (2/3)*d (152 < 300 mm) -> U = 0.85
+    assert calc_shear_lag_factor_U(case=7, bf_mm=152.0, d_mm=450.0) == 0.85
+
+
+def test_golden_gusset_plate_whitmore_and_2t_clearance():
+    """GOLDEN. Verificación de sección de Whitmore (AISC 360 §J4) y franja libre de 2t en SCBF (AISC 341 §F2.6c.2).
+
+    Fuente Normativa:
+      - AISC 360-16:
+        * §J4.1: Strength of Elements in Tension - Whitmore Section:
+          b_w = w_conn + 2 · L_conn · tan(30°).
+          Pn = Fy · b_w · t_gusset  (con phi = 0.90).
+      - AISC 341-16:
+        * §F2.6c.2: Special Concentric Braced Frames - Brace Connections:
+          La placa de nudo debe proveer una zona libre de articulación plástica de al menos 2·t_gusset
+          perpendicular al eje del arriostramiento para permitir la rotación fuera del plano por pandeo cíclico.
+
+    Derivación a Mano:
+      Placa de nudo: t_gusset = 16.0 mm, Fy = 250.0 MPa (A36).
+      Conexión de arriostramiento: ancho w_conn = 200.0 mm, largo de soldadura L_conn = 300.0 mm.
+      tan(30°) = 0.577350.
+      b_w = 200.0 + 2 * 300.0 * 0.577350 = 200.0 + 346.410 = 546.410 mm.
+      Aw = 546.410 * 16.0 = 8742.56 mm².
+      Pn = 250.0 * 8742.56 / 1000 = 2185.64 kN.
+      phi·Pn = 0.90 * 2185.64 = 1967.08 kN.
+
+      Franja libre requerida: 2 · t_gusset = 2 * 16.0 = 32.0 mm.
+      Si se provee 40.0 mm -> CUMPLE (40.0 >= 32.0).
+      Si se provee 20.0 mm -> FALLA por riesgo de fractura frágil bajo rotación cíclica.
+    """
+    from steeloptimizerjm.bracing import check_gusset_plate
+
+    # Caso 1: Cumple Whitmore y cumple franja de 2t
+    res_ok = check_gusset_plate(
+        t_gusset_mm=16.0,
+        Fy_gusset_MPa=250.0,
+        w_conn_mm=200.0,
+        L_conn_mm=300.0,
+        clearance_provided_mm=40.0,
+        Pu_tension_kN=1500.0,
+    )
+    tan30 = math.tan(math.radians(30.0))
+    expected_bw = 200.0 + 2.0 * 300.0 * tan30
+    assert res_ok.whitmore_width_mm == pytest.approx(expected_bw, rel=1e-5)
+    expected_Aw = expected_bw * 16.0
+    assert res_ok.whitmore_area_mm2 == pytest.approx(expected_Aw, rel=1e-5)
+    expected_phi_Pn = 0.90 * 250.0 * expected_Aw / 1000.0
+    assert res_ok.phi_Pn_whitmore_kN == pytest.approx(expected_phi_Pn, rel=1e-5)
+    assert res_ok.clearance_2t_required_mm == 32.0
+    assert res_ok.is_2t_clearance_ok is True
+    assert res_ok.status == "OK"
+
+    # Caso 2: Falla franja de 2t (clearance = 25 mm < 32 mm)
+    res_fail_clearance = check_gusset_plate(
+        t_gusset_mm=16.0,
+        Fy_gusset_MPa=250.0,
+        w_conn_mm=200.0,
+        L_conn_mm=300.0,
+        clearance_provided_mm=25.0,  # Menor que 2 * 16.0 = 32.0 mm
+        Pu_tension_kN=1500.0,
+    )
+    assert res_fail_clearance.is_2t_clearance_ok is False
+    assert res_fail_clearance.status == "FAIL"
+

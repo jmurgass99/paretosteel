@@ -240,12 +240,207 @@ def design_steel_brace(
     )
 
 
+# ---------------------------------------------------------------------------
+# AISC 341-16 §F2.3 — Carga desequilibrada en vigas de arriostramiento Chevron
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class ChevronBeamDemand:
+    """Demanda sobre la viga debida a la carga desequilibrada de arriostramientos en V o V invertida (Chevron).
+
+    Fuente Normativa:
+      - AISC 341-16: Seismic Provisions for Structural Steel Buildings.
+      - Section F2.3: Analysis - Required Strength of Beams in Chevron Braced Frames.
+        Cuando la diagonal comprimida pandea, su capacidad cae a la resistencia residual post-pandeo:
+          P_post_buckling = 0.30 · P_exp
+        mientras la diagonal traccionada alcanza su capacidad esperada T_exp = Ry · Fy · Ag.
+        La fuerza vertical desequilibrada en el punto medio de la viga es:
+          P_desequilibrio = (T_exp - 0.30 · P_exp) · sen(θ)
+    """
+    T_exp_kN: float
+    P_exp_kN: float
+    P_post_buckling_kN: float       # 0.30 * P_exp
+    theta_deg: float
+    P_unbalanced_vertical_kN: float # (T_exp - 0.30 * P_exp) * sin(theta)
+    P_unbalanced_horizontal_kN: float # (T_exp + 0.30 * P_exp) * cos(theta)
+    M_beam_midspan_kNm: float       # P_unbalanced_v * L_beam / 4
+    elastic_vertical_demand_kN: float
+    amplification_over_elastic: float # P_unbalanced_v / max(elastic_v, 1e-6)
+
+
+def calculate_chevron_beam_unbalanced_demand(
+    brace_result: SteelBraceResult,
+    theta_deg: float,
+    beam_span_mm: float,
+    elastic_vertical_demand_kN: float = 0.0,
+) -> ChevronBeamDemand:
+    """Calcula la demanda vertical desequilibrada sobre la viga según AISC 341-16 §F2.3."""
+    theta_rad = math.radians(theta_deg)
+    sin_theta = math.sin(theta_rad)
+    cos_theta = math.cos(theta_rad)
+
+    T_exp = brace_result.expected_tension_capacity_kN
+    P_exp = brace_result.expected_compression_capacity_kN
+    P_post = 0.30 * P_exp  # AISC 341-16 §F2.3 post-buckling compressive strength
+
+    # Componente vertical de la fuerza desequilibrada
+    P_unbalanced_v = (T_exp - P_post) * sin_theta
+    # Componente horizontal neta transmitida a la viga
+    P_unbalanced_h = (T_exp + P_post) * cos_theta
+
+    # Momento flector en el centro del vano de la viga biapoyada: P * L / 4
+    M_beam_midspan = (P_unbalanced_v * (beam_span_mm / 1000.0)) / 4.0
+
+    amp = P_unbalanced_v / max(elastic_vertical_demand_kN, 1e-3) if elastic_vertical_demand_kN > 0 else float("inf")
+
+    return ChevronBeamDemand(
+        T_exp_kN=T_exp,
+        P_exp_kN=P_exp,
+        P_post_buckling_kN=P_post,
+        theta_deg=theta_deg,
+        P_unbalanced_vertical_kN=P_unbalanced_v,
+        P_unbalanced_horizontal_kN=P_unbalanced_h,
+        M_beam_midspan_kNm=M_beam_midspan,
+        elastic_vertical_demand_kN=elastic_vertical_demand_kN,
+        amplification_over_elastic=amp,
+    )
+
+
+# ---------------------------------------------------------------------------
+# AISC 360-16 Capítulo D — Retraso de cortante (Shear Lag) Ae = An · U
+# ---------------------------------------------------------------------------
+
+def calc_shear_lag_factor_U(
+    case: int = 2,
+    x_bar_mm: float = 0.0,
+    L_conn_mm: float = 100.0,
+    bf_mm: float = 0.0,
+    d_mm: float = 0.0,
+) -> float:
+    """Calcula el factor de retraso de cortante U según AISC 360-16 Tabla D3.1.
+
+    Casos implementados:
+      - Caso 1: Todos los elementos conectados directamente -> U = 1.0.
+      - Caso 2: Conexión atornillada o soldada con elementos no conectados directamente:
+          U = 1.0 - x_bar / L_conn (con cota inferior 0.0 y superior 1.0).
+      - Caso 7: Perfiles W / I con alas conectadas:
+          * bf >= (2/3)·d -> U = 0.90
+          * bf < (2/3)·d  -> U = 0.85
+    """
+    if case == 1:
+        return 1.0
+    elif case == 2:
+        if L_conn_mm <= 0:
+            raise ValueError("Longitud de conexión L_conn_mm debe ser > 0.")
+        u = 1.0 - (x_bar_mm / L_conn_mm)
+        return max(0.0, min(1.0, u))
+    elif case == 7:
+        if d_mm <= 0:
+            raise ValueError("Peralte d_mm debe ser > 0 para Caso 7.")
+        if bf_mm >= (2.0 / 3.0) * d_mm:
+            return 0.90
+        else:
+            return 0.85
+    else:
+        raise ValueError(f"Caso de retraso de cortante AISC Tabla D3.1 no soportado: {case}")
+
+
+def calc_net_effective_area(
+    Ag_mm2: float,
+    An_mm2: float,
+    U: float,
+) -> tuple[float, float]:
+    """Calcula el área neta efectiva Ae = An * U y la relación Ae/Ag."""
+    if An_mm2 > Ag_mm2:
+        raise ValueError(f"Área neta An ({An_mm2}) no puede ser mayor que área bruta Ag ({Ag_mm2}).")
+    Ae = An_mm2 * U
+    ratio = Ae / max(Ag_mm2, 1e-6)
+    return Ae, ratio
+
+
+# ---------------------------------------------------------------------------
+# Chapa de nudo (Gusset Plate): Sección de Whitmore y Franja libre de 2t
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class GussetPlateResult:
+    """Verificación de chapa de nudo (Gusset Plate) según AISC 360-16 y AISC 341-16."""
+    t_gusset_mm: float
+    whitmore_width_mm: float
+    whitmore_area_mm2: float
+    Pn_whitmore_yield_kN: float
+    phi_Pn_whitmore_kN: float        # phi = 0.90
+    dcr_whitmore: float
+    clearance_2t_required_mm: float  # 2 * t_gusset
+    clearance_provided_mm: float
+    is_2t_clearance_ok: bool
+    status: str
+
+
+def check_gusset_plate(
+    t_gusset_mm: float,
+    Fy_gusset_MPa: float,
+    w_conn_mm: float,
+    L_conn_mm: float,
+    clearance_provided_mm: float,
+    Pu_tension_kN: float,
+) -> GussetPlateResult:
+    """Verifica la chapa de nudo (sección de Whitmore a tracción y franja libre de 2t en SCBF).
+
+    Fuente Normativa:
+      - AISC 360-16 §J4: Sección de Whitmore con ángulo de dispersión de 30°:
+          b_w = w_conn + 2 · L_conn · tan(30°)
+          Pn = Fy · b_w · t_gusset  (phi = 0.90)
+      - AISC 341-16 §F2.6c.2: Zona de articulación libre de 2t:
+          clearance >= 2.0 · t_gusset (permite rotación fuera del plano sin agrietamiento).
+    """
+    if t_gusset_mm <= 0:
+        raise ValueError("Espesor de gusset debe ser > 0.")
+
+    # Ancho de Whitmore: w_conn + 2 * L_conn * tan(30°)
+    tan30 = math.tan(math.radians(30.0))
+    bw = w_conn_mm + 2.0 * L_conn_mm * tan30
+    Aw = bw * t_gusset_mm
+
+    # Resistencia de fluencia en la sección de Whitmore (AISC 360-16 §J4.1)
+    Pn_w_yield = Fy_gusset_MPa * Aw / 1000.0  # kN
+    phi = 0.90
+    phi_Pn = phi * Pn_w_yield
+    dcr_w = Pu_tension_kN / max(phi_Pn, 1e-6)
+
+    # Franja libre de 2t para articulación plástica fuera del plano (AISC 341-16 §F2.6c.2)
+    req_clearance = 2.0 * t_gusset_mm
+    clearance_ok = bool(clearance_provided_mm >= req_clearance)
+
+    status = "OK" if (dcr_w <= 1.0 and clearance_ok) else "FAIL"
+
+    return GussetPlateResult(
+        t_gusset_mm=t_gusset_mm,
+        whitmore_width_mm=bw,
+        whitmore_area_mm2=Aw,
+        Pn_whitmore_yield_kN=Pn_w_yield,
+        phi_Pn_whitmore_kN=phi_Pn,
+        dcr_whitmore=dcr_w,
+        clearance_2t_required_mm=req_clearance,
+        clearance_provided_mm=clearance_provided_mm,
+        is_2t_clearance_ok=clearance_ok,
+        status=status,
+    )
+
+
 __all__ = [
     "BracingType",
     "SteelBraceSection",
     "BracingSystemDemand",
     "SteelBraceResult",
+    "ChevronBeamDemand",
+    "GussetPlateResult",
     "calculate_effective_lengths",
     "aisc_e3_critical_stress",
     "design_steel_brace",
+    "calculate_chevron_beam_unbalanced_demand",
+    "calc_shear_lag_factor_U",
+    "calc_net_effective_area",
+    "check_gusset_plate",
 ]
+
