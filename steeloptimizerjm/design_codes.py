@@ -179,6 +179,133 @@ def lateral_torsional_buckling_ec3(inp: LtbEc3Input) -> LtbEc3Result:
     )
 
 
+# ===========================================================================
+# AISC 360-16 Chapter H §H1 and Appendix 8 §8.2 (Beam-Column Interaction)
+# ===========================================================================
+
+@dataclass(frozen=True)
+class AiscBeamColumnInput:
+    """Inputs para interacción compresión-flexión biaxial según AISC 360-16 Capítulo H.
+
+    Citas normativas:
+      - Interacción P-M-M: AISC 360-16 Capítulo H §H1.1 (Eq. H1-1a / H1-1b)
+      - Amplificación de momentos de 2º orden: AISC 360-16 Apéndice 8 §8.2 (Eq. A-8-3, A-8-5)
+    """
+    Pu_kN: float
+    Pn_kN: float                 # Resistencia axial nominal a compresión Pn (AISC §E)
+    Mux_kNm: float               # Momento de 1er orden en eje mayor (kN·m)
+    Mnx_kNm: float               # Resistencia nominal a flexión eje mayor (kN·m)
+    Muy_kNm: float = 0.0         # Momento de 1er orden en eje menor (kN·m)
+    Mny_kNm: float = 1.0         # Resistencia nominal a flexión eje menor (kN·m)
+    L_x_mm: float = 3000.0       # Longitud no arriostrada para pandeo en X (mm)
+    L_y_mm: float = 3000.0       # Longitud no arriostrada para pandeo en Y (mm)
+    Ix_mm4: float = 1.0e8        # Momento de inercia eje mayor (mm⁴)
+    Iy_mm4: float = 2.0e7        # Momento de inercia eje menor (mm⁴)
+    E_MPa: float = 200000.0      # Módulo de elasticidad (MPa)
+    K1_x: float = 1.0            # Factor de longitud efectiva no traslacional X
+    K1_y: float = 1.0            # Factor de longitud efectiva no traslacional Y
+    Cm_x: float = 1.0            # Factor de gradiente de momentos X (AISC Apéndice 8 Eq. A-8-4)
+    Cm_y: float = 1.0            # Factor de gradiente de momentos Y (AISC Apéndice 8 Eq. A-8-4)
+    phi_c: float = 0.90          # Factor de resistencia a compresión (AISC §E1)
+    phi_b: float = 0.90          # Factor de resistencia a flexión (AISC §F1)
+
+
+@dataclass(frozen=True)
+class AiscBeamColumnResult:
+    """Resultado de la verificación de interacción AISC 360-16 Capítulo H."""
+    Pe1_x_kN: float              # Carga crítica de Euler en X (Apéndice 8 Eq. A-8-5)
+    Pe1_y_kN: float              # Carga crítica de Euler en Y (Apéndice 8 Eq. A-8-5)
+    B1_x: float                  # Amplificador de momento B1 en X (Apéndice 8 Eq. A-8-3)
+    B1_y: float                  # Amplificador de momento B1 en Y (Apéndice 8 Eq. A-8-3)
+    Mrx_kNm: float               # Momento amplificado de 2º orden en X (kN·m)
+    Mry_kNm: float               # Momento amplificado de 2º orden en Y (kN·m)
+    axial_ratio: float           # Pu / (phi_c * Pn)
+    governing_equation: str      # 'H1-1a' (ratio >= 0.20) o 'H1-1b' (ratio < 0.20)
+    dcr: float                   # Ratio demanda / capacidad
+    is_ok: bool
+
+
+def calc_B1(Pu_kN: float, Pe1_kN: float, Cm: float = 1.0) -> float:
+    """Calcula el amplificador de momento B1 según AISC 360-16 Apéndice 8 Eq. A-8-3.
+
+    B1 = Cm / (1 - Pu / Pe1) >= 1.0
+    """
+    if Pe1_kN <= 0.0:
+        raise ValueError("La carga crítica de Euler Pe1 debe ser positiva.")
+    if Pu_kN >= Pe1_kN:
+        raise ValueError(
+            f"La carga axial Pu ({Pu_kN:.2f} kN) alcanza o supera la carga de Euler Pe1 ({Pe1_kN:.2f} kN), "
+            "provocando inestabilidad elástica por divergencia (AISC 360-16 Apéndice 8)."
+        )
+    denom = 1.0 - (Pu_kN / Pe1_kN)
+    b1 = Cm / denom
+    return max(1.0, b1)
+
+
+def aisc_beam_column_interaction(inp: AiscBeamColumnInput) -> AiscBeamColumnResult:
+    """Comprueba la interacción compresión axial y flexión biaxial según AISC 360-16 §H1.1 y Apéndice 8 §8.2.
+
+    Ecuaciones:
+      - Para Pu / (φc·Pn) >= 0.20 (Eq. H1-1a):
+            Pu / (φc·Pn) + (8/9) · (Mrx / (φb·Mnx) + Mry / (φb·Mny)) <= 1.0
+      - Para Pu / (φc·Pn) < 0.20 (Eq. H1-1b):
+            Pu / (2·φc·Pn) + (Mrx / (φb·Mnx) + Mry / (φb·Mny)) <= 1.0
+    """
+    import math
+
+    pi = math.pi
+    # Cargas críticas de Euler (Apéndice 8 Eq. A-8-5): Pe1 = (π² · E · I) / (K1 · L)²
+    Pe1_x_kN = (pi ** 2 * inp.E_MPa * inp.Ix_mm4) / ((inp.K1_x * inp.L_x_mm) ** 2 * 1000.0)
+    Pe1_y_kN = (pi ** 2 * inp.E_MPa * inp.Iy_mm4) / ((inp.K1_y * inp.L_y_mm) ** 2 * 1000.0)
+
+    # Factores de amplificación de segundo orden B1 (Apéndice 8 Eq. A-8-3)
+    B1_x = calc_B1(inp.Pu_kN, Pe1_x_kN, inp.Cm_x)
+    B1_y = calc_B1(inp.Pu_kN, Pe1_y_kN, inp.Cm_y)
+
+    Mrx_kNm = B1_x * inp.Mux_kNm
+    Mry_kNm = B1_y * inp.Muy_kNm
+
+    phi_Pn = inp.phi_c * inp.Pn_kN
+    phi_Mnx = inp.phi_b * inp.Mnx_kNm
+    phi_Mny = inp.phi_b * inp.Mny_kNm
+
+    if phi_Pn <= 0.0:
+        p_ratio = float("inf") if inp.Pu_kN > 0 else 0.0
+    else:
+        p_ratio = inp.Pu_kN / phi_Pn
+
+    moment_sum = 0.0
+    if phi_Mnx > 0.0:
+        moment_sum += Mrx_kNm / phi_Mnx
+    elif Mrx_kNm > 0.0:
+        moment_sum += float("inf")
+
+    if phi_Mny > 0.0:
+        moment_sum += Mry_kNm / phi_Mny
+    elif Mry_kNm > 0.0:
+        moment_sum += float("inf")
+
+    if p_ratio >= 0.20:
+        gov_eq = "H1-1a"
+        dcr = p_ratio + (8.0 / 9.0) * moment_sum
+    else:
+        gov_eq = "H1-1b"
+        dcr = (p_ratio / 2.0) + moment_sum
+
+    return AiscBeamColumnResult(
+        Pe1_x_kN=Pe1_x_kN,
+        Pe1_y_kN=Pe1_y_kN,
+        B1_x=B1_x,
+        B1_y=B1_y,
+        Mrx_kNm=Mrx_kNm,
+        Mry_kNm=Mry_kNm,
+        axial_ratio=p_ratio,
+        governing_equation=gov_eq,
+        dcr=dcr,
+        is_ok=dcr <= 1.0,
+    )
+
+
 __all__ = [
     "SteelBeamInput", "SteelBeamResult", "design_beam_compact",
     "SteelColumnInput", "design_column",
