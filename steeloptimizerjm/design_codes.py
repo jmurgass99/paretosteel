@@ -101,7 +101,18 @@ def design_column(inp: SteelColumnInput) -> dict[str, Any]:
 
 @dataclass(frozen=True)
 class LtbEc3Input:
-    """Parámetros para comprobación de pandeo lateral-torsional según EN 1993-1-1 §6.3.2."""
+    """Parámetros para comprobación de pandeo lateral-torsional según EN 1993-1-1 §6.3.2.
+    
+    Hipótesis de cálculo:
+      - Condiciones de apoyo en extremos tipo horquilla (simplemente apoyada, torsión impedida,
+        alabeo libre: k = 1.0, kw = 1.0).
+      - Coeficiente de momento C1 según Access Steel SN001a / ECCS.
+      - Factor de imperfección alpha_LT según EN 1993-1-1 §6.3.2.2 Tabla 6.4:
+        * Perfiles I laminados con h/b <= 2.0 -> Curva a (alpha_LT = 0.21)
+        * Perfiles I laminados con h/b > 2.0 -> Curva b (alpha_LT = 0.34)
+        * Perfiles I soldados con h/b <= 2.0 -> Curva c (alpha_LT = 0.49)
+        * Perfiles I soldados con h/b > 2.0 -> Curva d (alpha_LT = 0.76)
+    """
     L_unrestrained_mm: float
     Iz_mm4: float
     Iw_mm6: float
@@ -110,8 +121,8 @@ class LtbEc3Input:
     fy_MPa: float
     E_MPa: float = 210000.0
     G_MPa: float = 81000.0
-    C1: float = 1.0  # C1 = 1.0 (momento uniforme), 1.132 (carga repartida), 1.35 (puntual al centro) — Ref: Access Steel SN001a
-    alpha_LT: float = 0.34  # Factor imperfección curva b (laminados h/b > 1.2)
+    C1: float = 1.0  # C1 = 1.0 (momento uniforme), 1.132 (carga repartida), 1.35 (puntual al centro)
+    alpha_LT: float = 0.34  # Factor imperfección
     gamma_M1: float = 1.00
 
 
