@@ -136,6 +136,50 @@ class LtbEc3Result:
     Mpl_Rd_kNm: float
 
 
+def get_ec3_ltb_curve(
+    h_mm: float,
+    b_mm: float,
+    is_welded: bool = False,
+    method: str = "general",
+) -> tuple[str, float]:
+    """Determina la curva de pandeo lateral-torsional y factor de imperfección alpha_LT según EN 1993-1-1.
+
+    Fuente Normativa:
+      - EN 1993-1-1:2005: "Eurocode 3: Design of steel structures - Part 1-1".
+      - Sección 6.3.2.2, Tabla 6.4 (Recomendación para la curva de pandeo lateral-torsional en caso general):
+        * Perfiles laminados en I y H:
+            - h/b <= 2.0 -> Curva a (alpha_LT = 0.21) [NOTA: Para IPE 300 con h/b = 2.0 corresponde Curva a]
+            - h/b > 2.0  -> Curva b (alpha_LT = 0.34)
+        * Perfiles soldados en I y H:
+            - h/b <= 2.0 -> Curva c (alpha_LT = 0.49)
+            - h/b > 2.0  -> Curva d (alpha_LT = 0.76)
+      - Sección 6.3.2.3, Tabla 6.5 (Método específico para perfiles laminados o secciones equivalentes):
+        * Perfiles laminados en I y H:
+            - h/b <= 2.0 -> Curva b (alpha_LT = 0.34)
+            - h/b > 2.0  -> Curva c (alpha_LT = 0.49)
+    """
+    ratio = h_mm / max(b_mm, 1e-3)
+    m = method.lower()
+    if m == "general":
+        if not is_welded:
+            if ratio <= 2.0:
+                return "a", 0.21
+            else:
+                return "b", 0.34
+        else:
+            if ratio <= 2.0:
+                return "c", 0.49
+            else:
+                return "d", 0.76
+    elif m in ("rolled", "specific", "alternativo"):
+        if ratio <= 2.0:
+            return "b", 0.34
+        else:
+            return "c", 0.49
+    else:
+        raise ValueError(f"Método de pandeo lateral desconocido: '{method}'. Usar 'general' o 'rolled'.")
+
+
 def lateral_torsional_buckling_ec3(inp: LtbEc3Input) -> LtbEc3Result:
     """Calcula momento crítico elástico Mcr y resistencia de diseño Mb,Rd según EN 1993-1-1 §6.3.2."""
     import math

@@ -34,6 +34,7 @@ from .boq import (
 from .design_codes import (
     LtbEc3Input,
     LtbEc3Result,
+    get_ec3_ltb_curve,
     lateral_torsional_buckling_ec3,
     AiscBeamColumnInput,
     AiscBeamColumnResult,
@@ -77,6 +78,7 @@ __all__ = [
     "calculate_steel_boq",
     "LtbEc3Input",
     "LtbEc3Result",
+    "get_ec3_ltb_curve",
     "lateral_torsional_buckling_ec3",
     "AiscBeamColumnInput",
     "AiscBeamColumnResult",
