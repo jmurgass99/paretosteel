@@ -70,3 +70,30 @@ def test_golden_tabulated_en10365_area_differs_from_simplified_ishape():
     # Aserción obligatoria: el BoQ usa el área tabulada real de 53.8 cm², NO los 51.88 cm² simplificados
     assert report.items[0].tabulated_area_cm2 > A_simplified_cm2
     assert report.items[0].tabulated_area_cm2 == pytest.approx(53.8, rel=1e-2)
+
+
+def test_golden_steel_boq_spain_cost_and_embodied_co2():
+    """GOLDEN. Verificación de coste regional para España ('ES') y cálculo de CO2 incorporado."""
+    # Perfil HEB 200: A tabulada = 78.1 cm² -> masa lineal = 0.00781 * 7850 = 61.3085 kg/m
+    # 20.0 m -> masa total = 1226.17 kg = 1.22617 ton
+    items = [SteelBoQItem(profile_name="HEB 200", total_length_m=20.0)]
+
+    c_es = get_cost("ES")
+    assert c_es.country == "Spain"
+    assert c_es.USD_per_ton_fab == 2850.0
+    assert c_es.co2_kg_per_kg == 1.80
+
+    report = calculate_steel_boq(items=items, country_iso="ES", stage="fab")
+
+    assert report.country_iso == "ES"
+    assert report.country_name == "Spain"
+    assert report.rate_USD_per_ton == 2850.0
+    assert report.co2_intensity_kg_per_kg == 1.80
+    assert report.total_tonnage == pytest.approx(1.22617, rel=1e-4)
+
+    expected_cost_usd = 1.22617 * 2850.0
+    expected_co2_kg = 1226.17 * 1.80
+    assert report.total_cost_USD == pytest.approx(expected_cost_usd, rel=1e-4)
+    assert report.total_co2_kg == pytest.approx(expected_co2_kg, rel=1e-4)
+    assert report.items[0].co2_emissions_kg == pytest.approx(expected_co2_kg, rel=1e-4)
+

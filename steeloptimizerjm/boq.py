@@ -29,6 +29,7 @@ class ProfileBoQSummary:
     total_weight_kg: float
     total_tonnage: float
     cost_USD: float
+    co2_emissions_kg: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,8 @@ class SteelBoQReport:
     total_length_m: float
     total_tonnage: float
     total_cost_USD: float
+    total_co2_kg: float = 0.0
+    co2_intensity_kg_per_kg: float = 1.8
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -48,6 +51,7 @@ class SteelBoQReport:
             "country_name": self.country_name,
             "stage": self.stage,
             "rate_USD_per_ton": self.rate_USD_per_ton,
+            "co2_intensity_kg_per_kg": self.co2_intensity_kg_per_kg,
             "items": [
                 {
                     "profile_name": it.profile_name,
@@ -57,12 +61,14 @@ class SteelBoQReport:
                     "total_weight_kg": it.total_weight_kg,
                     "total_tonnage": it.total_tonnage,
                     "cost_USD": it.cost_USD,
+                    "co2_emissions_kg": it.co2_emissions_kg,
                 }
                 for it in self.items
             ],
             "total_length_m": self.total_length_m,
             "total_tonnage": self.total_tonnage,
             "total_cost_USD": self.total_cost_USD,
+            "total_co2_kg": self.total_co2_kg,
         }
 
 
@@ -104,16 +110,19 @@ def calculate_steel_boq(
     tot_len = 0.0
     tot_ton = 0.0
     tot_cost = 0.0
+    tot_co2 = 0.0
 
     for it in items:
         a_cm2, w_kg_m = _get_tabulated_profile_data(it.profile_name)
         total_wt_kg = it.total_length_m * w_kg_m
         tonnage = total_wt_kg / 1000.0
         cost_item = tonnage * rate
+        co2_item = total_wt_kg * c_info.co2_kg_per_kg
 
         tot_len += it.total_length_m
         tot_ton += tonnage
         tot_cost += cost_item
+        tot_co2 += co2_item
 
         summaries.append(
             ProfileBoQSummary(
@@ -124,6 +133,7 @@ def calculate_steel_boq(
                 total_weight_kg=total_wt_kg,
                 total_tonnage=tonnage,
                 cost_USD=cost_item,
+                co2_emissions_kg=co2_item,
             )
         )
 
@@ -136,6 +146,8 @@ def calculate_steel_boq(
         total_length_m=tot_len,
         total_tonnage=tot_ton,
         total_cost_USD=tot_cost,
+        total_co2_kg=tot_co2,
+        co2_intensity_kg_per_kg=c_info.co2_kg_per_kg,
     )
 
 
