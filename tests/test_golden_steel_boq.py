@@ -16,7 +16,14 @@ from steeloptimizerjm.cost_by_country import get_cost
 
 
 def test_golden_steel_boq_exact_sum_and_country_cost():
-    """GOLDEN. Suma exacta de tonelaje y coste para combinación de perfiles con tarifa de Alemania."""
+    """GOLDEN. Suma exacta de tonelaje y coste para combinación de perfiles con tarifa de Alemania.
+
+    Fuente Normativa:
+      - EN 10365:2017: "Hot rolled steel channels, I and H sections - Dimensions and masses".
+        * Tabla 1: Dimensiones y masas de perfiles IPE (área nominal tabulada IPE 300 = 53.8 cm²).
+        * Tabla 5: Dimensiones y masas de perfiles HEB (área nominal tabulada HEB 300 = 149.1 cm²).
+        * Densidad de referencia: 7850 kg/m³.
+    """
     items = [
         SteelBoQItem(profile_name="IPE 300", total_length_m=100.0),
         SteelBoQItem(profile_name="HEB 300", total_length_m=50.0),
@@ -55,10 +62,13 @@ def test_golden_steel_boq_exact_sum_and_country_cost():
 
 
 def test_golden_tabulated_en10365_area_differs_from_simplified_ishape():
-    """GOLDEN. Demuestra que IShape simplificado (2*bf*tf + (h-2*tf)*tw) subestima el área real por omitir los acuerdos r."""
-    # Para IPE 300: h=300 mm, bf=150 mm, tf=10.7 mm, tw=7.1 mm, r=15 mm
-    # Área simplificada = 2 * 150 * 10.7 + (300 - 2*10.7) * 7.1 = 3210 + 1978.06 = 5188.06 mm² = 51.88 cm²
-    # Área tabulada real EN 10365 (con acuerdos r=15 mm) = 53.81 cm² (~3.7% más de acero real)
+    """GOLDEN. Demuestra que IShape simplificado (2*bf*tf + (h-2*tf)*tw) subestima el área real por omitir los acuerdos r.
+
+    Fuente Normativa:
+      - EN 10365:2017: "Hot rolled steel channels, I and H sections - Dimensions and masses".
+        * Tabla 1: IPE 300 (h=300 mm, b=150 mm, tf=10.7 mm, tw=7.1 mm, r=15 mm).
+        * Área tabulada con acuerdos = 53.81 cm² vs área simplificada sin acuerdos = 51.88 cm².
+    """
     h = 300.0
     bf = 150.0
     tf = 10.7
@@ -72,8 +82,8 @@ def test_golden_tabulated_en10365_area_differs_from_simplified_ishape():
     assert report.items[0].tabulated_area_cm2 == pytest.approx(53.8, rel=1e-2)
 
 
-def test_golden_steel_boq_spain_cost_and_embodied_co2():
-    """GOLDEN. Verificación de coste regional para España ('ES') y cálculo de CO2 incorporado."""
+def test_characterization_steel_boq_spain_cost_and_embodied_co2():
+    """CARACTERIZACIÓN. Verificación de coste regional para España ('ES') y cálculo de CO2 incorporado (datos de mercado/LCA)."""
     # Perfil HEB 200: A tabulada = 78.1 cm² -> masa lineal = 0.00781 * 7850 = 61.3085 kg/m
     # 20.0 m -> masa total = 1226.17 kg = 1.22617 ton
     items = [SteelBoQItem(profile_name="HEB 200", total_length_m=20.0)]

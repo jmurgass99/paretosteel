@@ -48,7 +48,16 @@ from steeloptimizerjm.design_codes import (
 
 
 def test_golden_aisc_h1_crossing_boundary_at_p_0_20():
-    """GOLDEN. Comprueba la frontera de cruce p = 0.20 y la igualdad exacta cuando Σ = 0.90."""
+    """GOLDEN. Comprueba la frontera de cruce p = 0.20 y la igualdad exacta cuando Σ = 0.90.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Chapter H §H1.1: Doubly and Singly Symmetric Members Subject to Flexure and Axial Compression.
+        * Eq. (H1-1a): Pr/Pc + (8/9)·(Mrx/Mcx + Mry/Mcy) <= 1.0 (para Pr/Pc >= 0.20).
+      - Appendix 8 §8.2: Approximate Second-Order Analysis.
+        * Eq. (A-8-3): B1 = Cm / (1 - α·Pr / Pe1) >= 1.0 (con α = 1.0 para LRFD).
+        * Eq. (A-8-5): Pe1 = π² · E · I / (K1 · L)².
+    """
     pi = math.pi
     Pe1_x_expected = (pi ** 2 * 200000.0 * 2.0e8) / (4000.0 ** 2 * 1000.0)
     Pe1_y_expected = (pi ** 2 * 200000.0 * 5.0e7) / (4000.0 ** 2 * 1000.0)
@@ -96,7 +105,14 @@ def test_golden_aisc_h1_crossing_boundary_at_p_0_20():
 
 
 def test_golden_aisc_h1_exact_crossing_point_dcr_unity():
-    """GOLDEN. En p = 0.20 y suma de momentos Σ = 0.90, H1-1a y H1-1b dan exactamente 1.000000."""
+    """GOLDEN. En p = 0.20 y suma de momentos Σ = 0.90, H1-1a y H1-1b dan exactamente 1.000000.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Chapter H §H1.1: Doubly and Singly Symmetric Members Subject to Flexure and Axial Compression.
+        * Eq. (H1-1a): 0.20 + (8/9)·0.90 = 1.000000.
+        * Eq. (H1-1b): 0.20/2 + 0.90 = 1.000000.
+    """
     # Determinamos Mux tal que Mrx / (phi_b * Mnx) = 0.90 exactamente
     inp_exact = AiscBeamColumnInput(
         Pu_kN=360.0,
@@ -126,14 +142,18 @@ def test_golden_aisc_h1_exact_crossing_point_dcr_unity():
     )
     res = aisc_beam_column_interaction(inp_exact_calibrated)
     assert res.axial_ratio == pytest.approx(0.20, rel=1e-12)
-    # H1-1a: 0.20 + 8/9 * 0.90 = 1.0000000
-    # H1-1b (teórica): 0.20 / 2 + 0.90 = 1.0000000
     assert res.dcr == pytest.approx(1.0000000, rel=1e-12)
     assert res.is_ok is True
 
 
 def test_golden_aisc_h1_low_axial_ratio_h1_1b():
-    """GOLDEN. Para p < 0.20 (Pu = 180 kN -> p = 0.10) rige la ecuación H1-1b."""
+    """GOLDEN. Para p < 0.20 (Pu = 180 kN -> p = 0.10) rige la ecuación H1-1b.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Chapter H §H1.1: Doubly and Singly Symmetric Members Subject to Flexure and Axial Compression.
+        * Eq. (H1-1b): Pr/(2·Pc) + (Mrx/Mcx + Mry/Mcy) <= 1.0 (para Pr/Pc < 0.20).
+    """
     inp_low = AiscBeamColumnInput(
         Pu_kN=180.0,
         Pn_kN=2000.0,
@@ -158,7 +178,12 @@ def test_golden_aisc_h1_low_axial_ratio_h1_1b():
 
 
 def test_golden_b1_lower_bound_and_instability_limit():
-    """GOLDEN. B1 >= 1.0 (cota inferior activa cuando Cm < 1.0) y excepción ante Pu >= Pe1."""
+    """GOLDEN. B1 >= 1.0 (cota inferior activa cuando Cm < 1.0) y excepción ante Pu >= Pe1.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Appendix 8 §8.2, Eq. (A-8-3): B1 = Cm / (1 - α·Pr / Pe1) >= 1.0.
+    """
     # 1. Cota B1 >= 1.0
     b1_capped = calc_B1(Pu_kN=50.0, Pe1_kN=20000.0, Cm=0.60)
     assert b1_capped == 1.0  # 0.60 / (1 - 50/20000) = 0.6015 < 1.0 -> 1.0
