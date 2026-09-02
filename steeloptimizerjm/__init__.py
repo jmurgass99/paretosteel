@@ -40,6 +40,15 @@ from .design_codes import (
     calc_B1,
     aisc_beam_column_interaction,
 )
+from .bracing import (
+    BracingType,
+    SteelBraceSection,
+    BracingSystemDemand,
+    SteelBraceResult,
+    calculate_effective_lengths,
+    aisc_e3_critical_stress,
+    design_steel_brace,
+)
 
 __all__ = [
     "SteelProfile",
@@ -73,6 +82,13 @@ __all__ = [
     "AiscBeamColumnResult",
     "calc_B1",
     "aisc_beam_column_interaction",
+    "BracingType",
+    "SteelBraceSection",
+    "BracingSystemDemand",
+    "SteelBraceResult",
+    "calculate_effective_lengths",
+    "aisc_e3_critical_stress",
+    "design_steel_brace",
 ]
 
 from . import section_bridge
