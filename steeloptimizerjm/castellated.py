@@ -23,6 +23,9 @@ class CastellatedInput:
     pattern: str = "hex"              # 'hex' o 'circle'
 
 
+VALIDATION_LEVEL = "experimental"
+
+
 @dataclass(frozen=True)
 class CastellatedResult:
     db_castellated_mm: float
@@ -30,10 +33,11 @@ class CastellatedResult:
     Mn_post_kNm: float                # con apertura crítica (Vierendeel)
     capacity_ratio: float
     notes: list[str]
+    validation_level: str = "experimental"
 
 
 def design_castellated(inp: CastellatedInput) -> CastellatedResult:
-    """Calcula la altura aumentada (~1.5·db) y la capacidad reducida."""
+    """[ESTADO: EXPERIMENTAL] Calcula la altura aumentada (~1.5·db) y la capacidad reducida (AISC Design Guide 31)."""
     db_orig = inp.parent_db_mm
     db_cast = 1.50 * db_orig          # incremento estándar Litzka
     # Tee superior+inferior

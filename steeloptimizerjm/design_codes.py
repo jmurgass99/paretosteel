@@ -267,6 +267,7 @@ class AiscBeamColumnResult:
     governing_equation: str      # 'H1-1a' (ratio >= 0.20) o 'H1-1b' (ratio < 0.20)
     dcr: float                   # Ratio demanda / capacidad
     is_ok: bool
+    validation_level: str = "experimental"
 
 
 def calc_B1(Pu_kN: float, Pe1_kN: float, Cm: float = 1.0) -> float:
@@ -287,7 +288,9 @@ def calc_B1(Pu_kN: float, Pe1_kN: float, Cm: float = 1.0) -> float:
 
 
 def aisc_beam_column_interaction(inp: AiscBeamColumnInput) -> AiscBeamColumnResult:
-    """Comprueba la interacción compresión axial y flexión biaxial según AISC 360-16 §H1.1 y Apéndice 8 §8.2.
+    """[ESTADO: EXPERIMENTAL] Comprueba la interacción compresión axial y flexión biaxial según AISC 360-16 §H1.1 y Apéndice 8 §8.2.
+
+    Requiere momentos de pórtico calculados (no nulos) y rigideces no traslacionales.
 
     Ecuaciones:
       - Para Pu / (φc·Pn) >= 0.20 (Eq. H1-1a):
@@ -350,9 +353,13 @@ def aisc_beam_column_interaction(inp: AiscBeamColumnInput) -> AiscBeamColumnResu
     )
 
 
+aisc_beam_column_interaction.validation_level = "experimental"
+
+
 __all__ = [
     "SteelBeamInput", "SteelBeamResult", "design_beam_compact",
     "SteelColumnInput", "design_column",
     "LtbEc3Input", "LtbEc3Result", "lateral_torsional_buckling_ec3",
+    "AiscBeamColumnInput", "AiscBeamColumnResult", "aisc_beam_column_interaction", "calc_B1",
 ]
 
