@@ -76,6 +76,15 @@ class ParetoOptimizePayload(BaseModel):
     random_seed: int = 42
 
 
+class GussetPlatePayload(BaseModel):
+    t_gusset_mm: float = Field(..., gt=0, description="Espesor de la chapa de nudo en mm")
+    Fy_gusset_MPa: float = Field(..., gt=0, description="Límite elástico del acero de la chapa en MPa")
+    w_conn_mm: float = Field(..., gt=0, description="Ancho de conexión de la riostra en mm")
+    L_conn_mm: float = Field(..., gt=0, description="Longitud de la conexión apernada o soldada en mm")
+    clearance_provided_mm: float = Field(..., ge=0, description="Franja libre proporcionada para articulación plástica en mm")
+    Pu_tension_kN: float = Field(..., ge=0, description="Fuerza mayorada de tracción en la riostra en kN")
+
+
 def create_router():
     """Devuelve el APIRouter con los endpoints del optimizador.
 
@@ -196,6 +205,34 @@ def create_router():
         except Exception as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         return res.model_dump()
+
+    @router.post("/api/steel-opt/gusset-plate", summary="Verificación de chapa de nudo (Whitmore y franja 2t) según AISC 360-16 §J4 y AISC 341-16 §F2.6c")
+    def post_gusset_plate(body: GussetPlatePayload) -> dict:
+        from ..bracing import check_gusset_plate
+        try:
+            res = check_gusset_plate(
+                t_gusset_mm=body.t_gusset_mm,
+                Fy_gusset_MPa=body.Fy_gusset_MPa,
+                w_conn_mm=body.w_conn_mm,
+                L_conn_mm=body.L_conn_mm,
+                clearance_provided_mm=body.clearance_provided_mm,
+                Pu_tension_kN=body.Pu_tension_kN,
+            )
+            return {
+                "t_gusset_mm": res.t_gusset_mm,
+                "whitmore_width_mm": res.whitmore_width_mm,
+                "whitmore_area_mm2": res.whitmore_area_mm2,
+                "Pn_whitmore_yield_kN": res.Pn_whitmore_yield_kN,
+                "phi_Pn_whitmore_kN": res.phi_Pn_whitmore_kN,
+                "dcr_whitmore": res.dcr_whitmore,
+                "clearance_2t_required_mm": res.clearance_2t_required_mm,
+                "clearance_provided_mm": res.clearance_provided_mm,
+                "is_2t_clearance_ok": res.is_2t_clearance_ok,
+                "status": res.status,
+                "code": "AISC 360-16 §J4.1 / AISC 341-16 §F2.6c.2",
+            }
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
 
     return router
 
