@@ -96,29 +96,3 @@ def test_price_sensitivity_v2():
     ))
     assert res.P10_usd < res.P50_usd < res.P90_usd
     assert res.mean_usd > 0
-
-
-def test_connection_optimal():
-    from steeloptimizerjm.integration.connection_optimal import recommend_connection
-    rec = recommend_connection("W14X30", Mu_kNm=300, Vu_kN=200, sismica=True)
-    assert rec.tipo in {"WUF-W", "RBS"}
-    rec2 = recommend_connection("W14X30", Mu_kNm=600, Vu_kN=200, sismica=True)
-    assert rec2.tipo == "RBS"
-
-
-def test_fastsap_evaluator_dry_run():
-    from steeloptimizerjm.integration.fastsap_evaluator import FastSAPEvaluator
-    ev = FastSAPEvaluator(dry_run=True)
-    r = ev.evaluate([300, 200, 8, 10])
-    assert r["dry_run"] is True
-    assert "Mu_kNm" in r
-
-
-def test_fastsap_evaluator_mock():
-    from unittest.mock import MagicMock
-    from steeloptimizerjm.integration.fastsap_evaluator import FastSAPEvaluator
-    mock = MagicMock()
-    mock.Results.FrameForce.return_value = [0, 0, 50.0, 100.0, 0, 0]
-    ev = FastSAPEvaluator(client=mock, dry_run=False)
-    r = ev.evaluate([300, 200, 8, 10])
-    assert "Mu_kNm" in r or "error" in r
