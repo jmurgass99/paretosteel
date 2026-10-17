@@ -150,8 +150,8 @@ def verify_member_ec3_2022(inp: Ec3SemiCompactInput) -> Ec3SemiCompactResult:
             chi = min(1.0, 1.0 / (phi + math.sqrt(disc)))
 
     n_b_rd = (chi * inp.area * inp.fy) / (inp.gamma_m1 * 1000.0)  # kN
-    util_m = abs(inp.m_ed) / m_rd_2022 if m_rd_2022 > 0.0 else float("inf")
-    util_n = abs(inp.n_ed) / n_b_rd if n_b_rd > 0.0 else 0.0
+    util_m = abs(inp.m_ed) / m_rd_2022
+    util_n = abs(inp.n_ed) / n_b_rd
     utilization = util_m + util_n
 
     return Ec3SemiCompactResult(
