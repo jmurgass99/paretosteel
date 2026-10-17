@@ -108,6 +108,11 @@ __all__ = [
     "Ec3SemiCompactResult",
     "compute_epsilon_ec3_2022",
     "verify_member_ec3_2022",
+    "Aisc360HssH36Input",
+    "Aisc360HssH36Result",
+    "compute_hss_torsional_constant_c",
+    "compute_rect_hss_design_torsion_strength",
+    "verify_aisc360_22_hss_h3_6",
 ]
 
 from . import section_bridge
@@ -118,5 +123,13 @@ from .ec3_2022_2g import (
     compute_epsilon_ec3_2022,
     verify_member_ec3_2022,
 )
+from .aisc360_22_hss import (
+    Aisc360HssH36Input,
+    Aisc360HssH36Result,
+    compute_hss_torsional_constant_c,
+    compute_rect_hss_design_torsion_strength,
+    verify_aisc360_22_hss_h3_6,
+)
+
 
 
