@@ -103,7 +103,20 @@ __all__ = [
     "calc_shear_lag_factor_U",
     "calc_net_effective_area",
     "check_gusset_plate",
+    "EC3_2022_STEEL_GRADES",
+    "Ec3SemiCompactInput",
+    "Ec3SemiCompactResult",
+    "compute_epsilon_ec3_2022",
+    "verify_member_ec3_2022",
 ]
 
 from . import section_bridge
+from .ec3_2022_2g import (
+    EC3_2022_STEEL_GRADES,
+    Ec3SemiCompactInput,
+    Ec3SemiCompactResult,
+    compute_epsilon_ec3_2022,
+    verify_member_ec3_2022,
+)
+
 
