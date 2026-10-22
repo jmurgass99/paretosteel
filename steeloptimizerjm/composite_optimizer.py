@@ -78,6 +78,7 @@ class CompositeCandidate:
     moment_capacity_kNm: float
     applied_moment_kNm: float
     num_studs_total: int
+    units: dict[str, str] = field(default_factory=lambda: {"moment": "kNm", "weight": "kg", "length": "mm"})
     diagnostics: list[str] = field(default_factory=list)
 
 
