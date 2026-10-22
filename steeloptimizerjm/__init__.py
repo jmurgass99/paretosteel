@@ -113,7 +113,20 @@ __all__ = [
     "compute_hss_torsional_constant_c",
     "compute_rect_hss_design_torsion_strength",
     "verify_aisc360_22_hss_h3_6",
+    # Composite Beam Optimizer
+    "CompositeOptimizationDemand",
+    "CompositeCandidate",
+    "CompositeOptimizationResult",
+    "optimize_composite_beam",
 ]
+
+from .composite_optimizer import (
+    CompositeOptimizationDemand,
+    CompositeCandidate,
+    CompositeOptimizationResult,
+    optimize_composite_beam,
+)
+
 
 from . import section_bridge
 from .ec3_2022_2g import (
