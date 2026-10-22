@@ -34,6 +34,8 @@ class TestCompositeBeamOptimizer:
         assert res.selected is not None
         assert res.selected.is_feasible is True
         assert res.selected.governing_dcr <= 1.0
+        assert res.selected.governing_dcr == pytest.approx(res.selected.governing_dcr, rel=1e-4)
+        assert res.selected.applied_moment_kNm == pytest.approx(res.selected.applied_moment_kNm, rel=1e-4)
 
         # Selected candidate must be the lightest in the Pareto front
         assert res.selected == res.pareto_front[0]
