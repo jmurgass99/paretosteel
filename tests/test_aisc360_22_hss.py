@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.aisc360_22_hss import (
+from paretosteel.aisc360_22_hss import (
     Aisc360HssH36Input,
     compute_hss_torsional_constant_c,
     compute_rect_hss_design_torsion_strength,

@@ -7,7 +7,7 @@ Requisitos:
 from __future__ import annotations
 
 import pytest
-from steeloptimizerjm.pareto_lca import (
+from paretosteel.pareto_lca import (
     ParetoGroupSpec,
     ParetoOptimizeInput,
     run_pareto_lca_optimizer,

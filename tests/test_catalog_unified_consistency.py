@@ -9,7 +9,7 @@ import math
 
 import pytest
 
-from steeloptimizerjm.catalog_unified import all_sections
+from paretosteel.catalog_unified import all_sections
 
 SECTIONS = all_sections()
 NEW_FASE9 = {

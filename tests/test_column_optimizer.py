@@ -1,5 +1,5 @@
 import pytest
-from steeloptimizerjm.services.column_optimizer import (
+from paretosteel.services.column_optimizer import (
     ColumnOptimizationInput,
     ColumnOptimizationResult,
     optimize_column,

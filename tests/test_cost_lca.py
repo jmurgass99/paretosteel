@@ -1,5 +1,5 @@
 """Tests cost_lca."""
-from steeloptimizerjm.cost_lca import CostLCAInput, evaluate_cost_lca
+from paretosteel.cost_lca import CostLCAInput, evaluate_cost_lca
 
 
 def test_pais_default():

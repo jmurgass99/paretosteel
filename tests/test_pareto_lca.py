@@ -1,13 +1,13 @@
-"""Tests unitarios para la optimización multiobjetivo Pareto (Costo vs CO2) en SteelOptimizerJm."""
+"""Tests unitarios para la optimización multiobjetivo Pareto (Costo vs CO2) en ParetoSteel."""
 
 import pytest
 from fastapi.testclient import TestClient
-from steeloptimizerjm.pareto_lca import (
+from paretosteel.pareto_lca import (
     run_pareto_lca_optimizer,
     ParetoOptimizeInput,
     ParetoGroupSpec,
 )
-from steeloptimizerjm.api.app import create_app
+from paretosteel.api.app import create_app
 
 client = TestClient(create_app())
 

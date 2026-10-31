@@ -1,6 +1,6 @@
 """Tests sensibilidad al precio."""
 import pytest
-from steeloptimizerjm.price_sensitivity import (
+from paretosteel.price_sensitivity import (
     Candidate, sensitivity_sweep, break_even_price, evaluate_total_cost,
 )
 

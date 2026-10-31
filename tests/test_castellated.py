@@ -1,5 +1,5 @@
 """Tests castellated beams."""
-from steeloptimizerjm.castellated import CastellatedInput, design_castellated
+from paretosteel.castellated import CastellatedInput, design_castellated
 
 
 def test_db_aumenta():

@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import pytest
 
-from steeloptimizerjm.catalogs import (
+from paretosteel.catalogs import (
     ALL_CATALOGS,
     SteelProfile,
     filter_profiles,
 )
-from steeloptimizerjm.catalogs_aisc_full import (
+from paretosteel.catalogs_aisc_full import (
     AISC_W_FULL,
     AISC_HSS_FULL,
     load_aisc_v16,

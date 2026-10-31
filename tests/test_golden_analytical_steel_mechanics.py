@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""test_golden_analytical_steel_mechanics.py — Fichas Golden analíticas para SteelOptimizerJm.
+"""test_golden_analytical_steel_mechanics.py — Fichas Golden analíticas para ParetoSteel.
 
-BLOQUE D — GOLDENS DE LA BANDA BAJA (SteelOptimizerJm):
+BLOQUE D — GOLDENS DE LA BANDA BAJA (ParetoSteel):
 ======================================================
 1. Golden 1: Resistencia a flexión plástica de sección de acero y factor de forma (AISC 360 / EC3 Cl. 6.2.5).
    Cita/Referencia:

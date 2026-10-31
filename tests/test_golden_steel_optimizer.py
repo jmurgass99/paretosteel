@@ -1,5 +1,5 @@
 """
-test_golden_steel_optimizer.py — Golden Tests para SteelOptimizerJm
+test_golden_steel_optimizer.py — Golden Tests para ParetoSteel
 ===================================================================
 Verificaciones contra formulaciones normativas y libros canónicos:
 
@@ -13,7 +13,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.design_codes import (
+from paretosteel.design_codes import (
     SteelBeamInput,
     SteelColumnInput,
     design_beam_compact,

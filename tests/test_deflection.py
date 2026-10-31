@@ -2,7 +2,7 @@
 """Estado limite de servicio por deflexion (AISC / IBC)."""
 import pytest
 
-from steeloptimizerjm.deflection import (
+from paretosteel.deflection import (
     check_deflection,
     deflection_point_center,
     deflection_udl,

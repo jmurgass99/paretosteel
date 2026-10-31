@@ -1,60 +1,49 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "steeloptimizerjm"
+name = "paretosteel"
 version = "1.0.0"
-description = "AI Copilot for structural steel optimization and frame design"
+description = "Multi-objective steel structure optimization: NSGA-II and genetic algorithms over commercial catalogues (AISC, European), weight, cost by country and LCA objectives, beam and column selectors, bracing, castellated and composite beams, LTB audit (AISC 360-22, EN 1993-1-1)."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.23", "numba>=0.59", "jmstructural-common"]
+license = { text = "MIT" }
+authors = [{ name = "Jesús Murgas" }]
+keywords = ["steel-optimization", "nsga-ii", "genetic-algorithm", "pareto", "aisc-360", "en-1993-1-1", "lca", "structural-engineering"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.23", "scipy>=1.10", "numba>=0.59", "pydantic>=2.0"]
 
 [project.optional-dependencies]
-perf = [
-    "numba>=0.59",  # acelera el non-dominated sort de NSGA-II (nsga2_run(fast=True))
-]
-test = [
-    "pytest>=7.0",
-    "pytest-timeout>=2.1",
-    "pytest-cov>=4.0",
-    "httpx>=0.24",
-]
-api = [
-    "fastapi>=0.100",
-    "uvicorn[standard]>=0.23",
-    "pydantic>=2.0",
-    "httpx>=0.25",
-]
-optimize = [
-    "scipy>=1.10",
-]
+perf = ["numba>=0.59"]
+api = ["fastapi>=0.110", "uvicorn>=0.27", "httpx>=0.27"]
+memos = ["handcalcs>=1.6"]
+test = ["pytest>=7.4", "pytest-cov>=4.1", "pytest-timeout>=2.2", "hypothesis>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/jmurgass99/paretosteel"
+Repository = "https://github.com/jmurgass99/paretosteel"
+Issues = "https://github.com/jmurgass99/paretosteel/issues"
 
 [tool.setuptools.packages.find]
-include = ["steeloptimizerjm*"]
-exclude = ["tests*"]
-
-[tool.setuptools.package-data]
-"steeloptimizerjm" = ["data/*.csv"]
+include = ["paretosteel*"]
 
 [tool.pytest.ini_options]
-minversion = "7.0"
 testpaths = ["tests"]
 markers = [
-    "slow: marks tests as slow",
-    "integration: integration tests",
-    "api: tests REST API endpoints",
+    "slow: tests lentos (optimización completa)",
+    "integration: integración entre módulos",
+    "api: endpoints REST",
+    "experimental: funcionalidad declarada experimental",
+    "property: property-based con hypothesis",
 ]
-
-[tool.coverage.run]
-branch = true
-source = ["steeloptimizerjm"]
-omit = ["*/__pycache__/*", "*/tests/*"]
-
-[tool.coverage.report]
-fail_under = 75
-show_missing = true
-skip_empty = true
-
-[tool.uv.sources]
-jmstructural-common = { workspace = true }

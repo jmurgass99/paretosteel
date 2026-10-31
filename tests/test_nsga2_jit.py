@@ -6,7 +6,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import time
-from steeloptimizerjm.nsga2_jit import (
+from paretosteel.nsga2_jit import (
     fast_dominates,
     non_dominated_sort_jit,
     calculate_crowding_distance_jit,

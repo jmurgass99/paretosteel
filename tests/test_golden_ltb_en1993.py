@@ -43,7 +43,7 @@ from __future__ import annotations
 
 import math
 import pytest
-from steeloptimizerjm.design_codes import (
+from paretosteel.design_codes import (
     LtbEc3Input,
     lateral_torsional_buckling_ec3,
 )
@@ -122,7 +122,7 @@ def test_golden_en1993_table_6_4_and_6_5_ltb_curves_resolution():
       El falso umbral "h/b > 1.2" pertenecía a la Tabla 6.2 (pandeo por compresión axial pura).
       Para pandeo lateral-torsional en la Tabla 6.4 el umbral normativo es exactamente h/b = 2.0.
     """
-    from steeloptimizerjm.design_codes import get_ec3_ltb_curve
+    from paretosteel.design_codes import get_ec3_ltb_curve
 
     # 1. Caso General (§6.3.2.2 Tabla 6.4)
     # IPE 300 laminado: h/b = 2.0 -> Curva a (alpha_LT = 0.21)

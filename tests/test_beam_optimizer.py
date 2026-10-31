@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from steeloptimizerjm.services.beam_optimizer import (
+from paretosteel.services.beam_optimizer import (
     BeamOptimizationInput,
     optimize_beam,
 )

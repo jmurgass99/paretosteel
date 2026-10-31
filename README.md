@@ -1,77 +1,77 @@
-# SteelOptimizerJm
+# paretosteel
 
-Optimizacion de porticos de acero con algoritmo genetico
+Optimización multiobjetivo de estructuras de acero: NSGA-II (con aceleración Numba) y algoritmo genético sobre catálogos comerciales unificados (AISC completo, IPE, HEB, HEA, HSS), objetivos de peso, coste por país y huella de carbono (LCA), selectores de viga y pilar con comprobación LRFD, arriostramientos, vigas alveolares y mixtas, auditoría de pandeo lateral-torsional (AISC 360-22, EN 1993-1-1), sensibilidad de precios, reutilización de perfiles y mediciones (BoQ).
 
-[![CI](https://github.com/jmurgass99/steeloptimizerjm/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/steeloptimizerjm/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-84.03%25-brightgreen?style=flat)](https://github.com/jmurgass99/steeloptimizerjm)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-Proprietary-red)]()
+[![CI](https://github.com/jmurgass99/paretosteel/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/paretosteel/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## Overview
+Paquete independiente. Dependencias: `numpy`, `scipy`, `numba`, `pydantic`. Las rutinas de viga mixta van incluidas en `paretosteel/_composite`.
 
-Optimizacion de porticos de acero con algoritmo genetico. Parte del ecosistema **jmurgass99** de herramientas de ingenieria estructural.
-
-## Installation
+## Instalación
 
 ```bash
-git clone https://github.com/jmurgass99/steeloptimizerjm.git
-cd steeloptimizerjm
-pip install -e .
-# Optional extras:
-pip install -e ".[test,api]"
+pip install git+https://github.com/jmurgass99/paretosteel.git
 ```
 
-## Quick start
+Extras: `api` (REST), `memos` (handcalcs), `test`.
+
+## Inicio rápido
+
+### Perfil de mínimo peso para una viga
 
 ```python
-from steeloptimizerjm import *  # see examples/ for usage
+from paretosteel.beam_selector import BeamDemand, optimize_beam
+
+res = optimize_beam(BeamDemand(M_kNm=320.0, V_kN=180.0, Fy_MPa=345.0, code="US"))
+feasible = sorted((c for c in res.candidates if c.feasible), key=lambda c: c.weight_kg_m)
+print(feasible[0].name, feasible[0].weight_kg_m)     # W18X35, 52.2 kg/m
 ```
 
-## REST API (if available)
+### Asignación de perfiles por grupos con algoritmo genético
 
-```bash
-uvicorn steeloptimizerjm.api.app:app --reload
-# Open http://localhost:8000/docs
+```python
+from paretosteel import ElementGroup, GAConfig, optimize
+
+groups = [
+    ElementGroup(name="vigas", length_total=120.0, min_Ix=2.5e-4, family_filter="IPE"),
+    ElementGroup(name="pilares", length_total=60.0, min_Ix=1.0e-4, min_A=8.0e-3, family_filter="HEB"),
+    ElementGroup(name="arriostramientos", length_total=80.0, min_A=2.0e-3, family_filter="HSS"),
+]
+ga = optimize(groups, config=GAConfig(population_size=40, n_generations=40, random_seed=1))
+print(ga.best.assignment, round(ga.best.weight))     # (('vigas','IPE450'), ('pilares','HEB240'), ...), 15680 kg
 ```
 
-## Testing
+### Frente de Pareto peso-coste-carbono (NSGA-II)
 
-```bash
-pytest -q                                # quick suite
-pytest -m "not slow"                     # exclude slow tests
-.\scripts\run_coverage.ps1               # coverage with gate
+```python
+from paretosteel.nsga2 import nsga2_run                       # motor NSGA-II genérico
+from paretosteel.pareto_lca import ParetoOptimizeInput, run_pareto_lca_optimizer
+help(run_pareto_lca_optimizer)                               # frente peso-coste-CO2 sobre catálogo
 ```
 
-## Project structure
+`examples/01_beam_selection_and_ga_groups.py` ejecuta los dos primeros flujos con tablas.
 
-```
-steeloptimizerjm/
-  services/       # service layer (pure functions)
-  api/            # FastAPI app (REST endpoints)
-  exceptions.py   # typed exception hierarchy
-  _brand.py       # brand constants
-tests/            # pytest suite
-```
+## Módulos
 
-## Ecosystem
+| Módulo | Contenido |
+|---|---|
+| `catalogs`, `catalogs_aisc_full`, `catalog_unified`, `section_bridge` | Catálogos y sección unificada |
+| `genetic`, `nsga2`, `nsga2_jit`, `_nsga2_fast`, `diff_evolution`, `optimizer`, `pareto`, `pareto_lca` | Motores de optimización |
+| `beam_selector`, `column_optimizer`, `bracing`, `castellated`, `composite_optimizer` | Selectores y elementos especiales |
+| `design_codes`, `aisc360_22_hss`, `ec3_2022_2g`, `deflection` | Comprobaciones normativas |
+| `cost_by_country`, `cost_lca`, `price_sensitivity`, `price_sensitivity_v2`, `reuse`, `boq` | Coste, LCA, sensibilidad, reutilización y mediciones |
+| `surrogate` | Metamodelo sustituto |
+| `api/`, `memos/` | REST y memorias |
 
-This project is part of the **jmurgass99 structural engineering ecosystem**:
+## Validación
 
-- [fastsap](https://github.com/jmurgass99/fastsap) - orquestador SAP2000/ETABS
-- [dynamicsjmpro](https://github.com/jmurgass99/dynamicsjmpro) - SaaS frontend + backend
-- [dynamicsjm](https://github.com/jmurgass99/dynamicsjm) - motor dinamico
-- [foundationdesignjm](https://github.com/jmurgass99/foundationdesignjm) - cimentaciones
-- [windloadjm](https://github.com/jmurgass99/windloadjm) - cargas de viento
-- [seismicrecordsjm](https://github.com/jmurgass99/seismicrecordsjm) - records sismicos
-- [slopestabilityjm](https://github.com/jmurgass99/slopestabilityjm) - estabilidad de taludes
-- [steelconnectionjm](https://github.com/jmurgass99/steelconnectionjm) - conexiones de acero
-- [steeloptimizerjm](https://github.com/jmurgass99/steeloptimizerjm) - optimizacion GA
-- [coldformedjm](https://github.com/jmurgass99/coldformedjm) - acero conformado en frio
-- [fatiguejm](https://github.com/jmurgass99/fatiguejm) - analisis de fatiga
-- [firesteeljm](https://github.com/jmurgass99/firesteeljm) - analisis termico al fuego
-- [dxfstructuraljm](https://github.com/jmurgass99/dxfstructuraljm) - generacion DXF
+Tests golden de interacción H1 de AISC, pandeo lateral-torsional EN 1993-1-1, frente de Pareto con LCA, mediciones y arriostramientos AISC; tests de propiedades con hypothesis.
 
+## Licencia
 
-## License
+MIT. Consulta [LICENSE](LICENSE).
 
-Proprietary - (c) 2026 jmurgass99. All rights reserved.
+---
+
+Parte del toolkit estructural de código abierto **Loadpath**, de [Jesús Murgas](https://github.com/jmurgass99).

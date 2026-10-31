@@ -7,8 +7,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from steeloptimizerjm.api.app import create_router
-from steeloptimizerjm.bracing import check_gusset_plate
+from paretosteel.api.app import create_router
+from paretosteel.bracing import check_gusset_plate
 
 
 @pytest.fixture

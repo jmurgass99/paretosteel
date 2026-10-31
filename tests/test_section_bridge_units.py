@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""test_section_bridge_units.py — Pruebas de unidades dimensionales para el puente SteelOptimizerJm.
+"""test_section_bridge_units.py — Pruebas de unidades dimensionales para el puente ParetoSteel.
 
 Verifica rigurosamente la consistencia dimensional de secciones de acero:
     dimensiones h, b, tw, tf [mm] -> [m] en modelo CSI/SAP
@@ -18,12 +18,14 @@ Cálculo a mano independiente (Derivación analítica de fastsap.section_catalog
       Iy = (b * h^3 - (b - tw) * (h - 2*tf)^3) / 12 = 7.99899e-5 m^4
 """
 from __future__ import annotations
+import pytest as _pytest_skip
+_pytest_skip.importorskip("fastsap")  # dependencia externa opcional: sin ella estos tests se omiten
 
 import math
 import pytest
 
 from fastsap.section_catalog import get_section
-from jmstructural_common.model import (
+from paretosteel._common.model import (
     Element,
     Material,
     Model,
@@ -31,7 +33,7 @@ from jmstructural_common.model import (
     Restraint,
     SectionRef,
 )
-from steeloptimizerjm.section_bridge import (
+from paretosteel.section_bridge import (
     apply_proposed_sections,
     read_assigned_sections,
 )

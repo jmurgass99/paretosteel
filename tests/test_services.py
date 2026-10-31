@@ -2,8 +2,8 @@
 from __future__ import annotations
 import pytest
 
-from steeloptimizerjm.exceptions import ConfigurationError
-from steeloptimizerjm.services.optimizer import (
+from paretosteel.exceptions import ConfigurationError
+from paretosteel.services.optimizer import (
     GroupSpec, OptimizerInput, run_ga_optimizer, list_catalog,
 )
 

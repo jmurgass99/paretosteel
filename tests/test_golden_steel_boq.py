@@ -8,11 +8,11 @@ Requisitos:
 from __future__ import annotations
 
 import pytest
-from steeloptimizerjm.boq import (
+from paretosteel.boq import (
     SteelBoQItem,
     calculate_steel_boq,
 )
-from steeloptimizerjm.cost_by_country import get_cost
+from paretosteel.cost_by_country import get_cost
 
 
 def test_golden_steel_boq_exact_sum_and_country_cost():

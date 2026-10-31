@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from steeloptimizerjm.diff_evolution import (
+from paretosteel.diff_evolution import (
     DEBeamResult,
     DEColumnResult,
     ParetoResult,
@@ -19,7 +19,7 @@ from steeloptimizerjm.diff_evolution import (
     optimize_column_de,
     pareto_weight_cost,
 )
-from steeloptimizerjm.catalogs import (
+from paretosteel.catalogs import (
     SteelProfile,
     all_profiles,
     filter_profiles,
@@ -147,7 +147,7 @@ class TestDEvsGA:
 
     def test_beam_comparable_to_service_optimizer(self):
         """DE debe encontrar una seccion factible para la misma demanda."""
-        from steeloptimizerjm.services.beam_optimizer import (
+        from paretosteel.services.beam_optimizer import (
             BeamOptimizationInput, optimize_beam,
         )
         # Misma viga

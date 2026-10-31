@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.ec3_2022_2g import (
+from paretosteel.ec3_2022_2g import (
     EC3_2022_STEEL_GRADES,
     Ec3SemiCompactInput,
     compute_epsilon_ec3_2022,

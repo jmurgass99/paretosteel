@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.bracing import (
+from paretosteel.bracing import (
     BracingSystemDemand,
     SteelBraceResult,
     SteelBraceSection,
@@ -168,7 +168,7 @@ def test_golden_chevron_unbalanced_beam_demand_f2_3():
       (ej. 20.0 kN por asimetrías elásticas menores).
       La demanda sísmica por capacidad con desequilibrio post-pandeo (861.3 kN) es MASIVA (>40 veces mayor).
     """
-    from steeloptimizerjm.bracing import (
+    from paretosteel.bracing import (
         calculate_chevron_beam_unbalanced_demand,
     )
 
@@ -241,7 +241,7 @@ def test_golden_shear_lag_factor_table_d3_1():
         Ae = 2572 * 0.875 = 2250.5 mm².
         Si se omitiera U (asumiendo U=1.0), se sobreestimaría la capacidad en +14.3% del lado INSEGURO.
     """
-    from steeloptimizerjm.bracing import (
+    from paretosteel.bracing import (
         calc_net_effective_area,
         calc_shear_lag_factor_U,
     )
@@ -292,7 +292,7 @@ def test_golden_gusset_plate_whitmore_and_2t_clearance():
       Si se provee 40.0 mm -> CUMPLE (40.0 >= 32.0).
       Si se provee 20.0 mm -> FALLA por riesgo de fractura frágil bajo rotación cíclica.
     """
-    from steeloptimizerjm.bracing import check_gusset_plate
+    from paretosteel.bracing import check_gusset_plate
 
     # Caso 1: Cumple Whitmore y cumple franja de 2t
     res_ok = check_gusset_plate(

@@ -1,8 +1,8 @@
-"""Tests de la jerarquía de excepciones de SteelOptimizerJm."""
+"""Tests de la jerarquía de excepciones de ParetoSteel."""
 from __future__ import annotations
 import pytest
 
-from steeloptimizerjm.exceptions import (
+from paretosteel.exceptions import (
     SteelOptimizerError,
     ConfigurationError,
     ConvergenceError,

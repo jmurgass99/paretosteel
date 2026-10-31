@@ -1,9 +1,9 @@
-"""Tests para IDEAS_20 grupos A/B/C en SteelOptimizerJm."""
+"""Tests para IDEAS_20 grupos A/B/C en ParetoSteel."""
 import pytest
 
 
 def test_justificacion_perfil_cumple():
-    from steeloptimizerjm.memos.justificacion_perfil import (
+    from paretosteel.memos.justificacion_perfil import (
         JustificacionInput, justificar,
     )
     res = justificar(JustificacionInput(
@@ -15,7 +15,7 @@ def test_justificacion_perfil_cumple():
 
 
 def test_justificacion_no_cumple():
-    from steeloptimizerjm.memos.justificacion_perfil import (
+    from paretosteel.memos.justificacion_perfil import (
         JustificacionInput, justificar,
     )
     res = justificar(JustificacionInput(
@@ -26,13 +26,13 @@ def test_justificacion_no_cumple():
 
 
 def test_nsga2_dominates():
-    from steeloptimizerjm.nsga2 import dominates
+    from paretosteel.nsga2 import dominates
     assert dominates((1.0, 2.0), (2.0, 3.0))
     assert not dominates((1.0, 5.0), (2.0, 3.0))
 
 
 def test_nsga2_run():
-    from steeloptimizerjm.nsga2 import nsga2_run
+    from paretosteel.nsga2 import nsga2_run
 
     def obj(g):
         return (g[0] ** 2, (g[0] - 2) ** 2)
@@ -42,7 +42,7 @@ def test_nsga2_run():
 
 
 def test_kriging_fits_constant():
-    from steeloptimizerjm.surrogate import KrigingSurrogate
+    from paretosteel.surrogate import KrigingSurrogate
     X = [[0.0], [1.0], [2.0]]
     y = [1.0, 1.0, 1.0]
     s = KrigingSurrogate(X=X, y=y, length=1.0).fit()
@@ -51,7 +51,7 @@ def test_kriging_fits_constant():
 
 
 def test_kriging_interpolacion():
-    from steeloptimizerjm.surrogate import KrigingSurrogate
+    from paretosteel.surrogate import KrigingSurrogate
     X = [[0.0], [1.0], [2.0]]
     y = [0.0, 2.0, 4.0]
     s = KrigingSurrogate(X=X, y=y, length=2.0).fit()
@@ -60,7 +60,7 @@ def test_kriging_interpolacion():
 
 
 def test_catalog_unified_filter():
-    from steeloptimizerjm.catalog_unified import (
+    from paretosteel.catalog_unified import (
         all_sections, filter_by, find_lightest,
     )
     secs = all_sections()
@@ -73,7 +73,7 @@ def test_catalog_unified_filter():
 
 
 def test_cost_by_country():
-    from steeloptimizerjm.cost_by_country import (
+    from paretosteel.cost_by_country import (
         get_cost, estimate_cost, list_countries,
     )
     assert "CL" in list_countries()
@@ -86,7 +86,7 @@ def test_cost_by_country():
 
 
 def test_price_sensitivity_v2():
-    from steeloptimizerjm.price_sensitivity_v2 import (
+    from paretosteel.price_sensitivity_v2 import (
         PriceSensitivityV2Input, monte_carlo,
     )
     res = monte_carlo(PriceSensitivityV2Input(

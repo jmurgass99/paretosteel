@@ -1,12 +1,14 @@
-"""Tests for the SteelOptimizerJm <-> fastsap / jmstructural-common section bridge."""
+"""Tests for the ParetoSteel <-> fastsap / jmstructural-common section bridge."""
 from __future__ import annotations
+import pytest as _pytest_skip
+_pytest_skip.importorskip("fastsap")  # dependencia externa opcional: sin ella estos tests se omiten
 import pytest
 
-from steeloptimizerjm.section_bridge import (
+from paretosteel.section_bridge import (
     read_assigned_sections,
     apply_proposed_sections,
 )
-from jmstructural_common.model import (
+from paretosteel._common.model import (
     Model,
     Node,
     Element,

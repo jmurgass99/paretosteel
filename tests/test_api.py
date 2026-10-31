@@ -5,7 +5,7 @@ import pytest
 pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
-from steeloptimizerjm.api.app import create_app
+from paretosteel.api.app import create_app
 
 
 @pytest.fixture(scope="module")

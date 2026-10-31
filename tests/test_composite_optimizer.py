@@ -1,11 +1,11 @@
 """
-Test suite for SteelOptimizerJm Composite Beam Optimizer.
+Test suite for ParetoSteel Composite Beam Optimizer.
 Verifies Pareto multi-objective optimization, discrete catalog evaluation,
 standard filtering (ASTM / EN), infeasible demand handling, and memo generation.
 """
 
 import pytest
-from steeloptimizerjm.composite_optimizer import (
+from paretosteel.composite_optimizer import (
     CompositeOptimizationDemand,
     CompositeCandidate,
     CompositeOptimizationResult,

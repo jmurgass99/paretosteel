@@ -7,12 +7,12 @@ import random
 
 import pytest
 
-from steeloptimizerjm.nsga2 import (
+from paretosteel.nsga2 import (
     Individual,
     non_dominated_sort,
     nsga2_run,
 )
-from steeloptimizerjm._nsga2_fast import NUMBA_AVAILABLE, non_dominated_sort_fast
+from paretosteel._nsga2_fast import NUMBA_AVAILABLE, non_dominated_sort_fast
 
 
 def _pop(fitnesses):

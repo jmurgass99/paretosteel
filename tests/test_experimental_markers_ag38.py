@@ -4,8 +4,8 @@ test_experimental_markers_ag38.py
 Campaña AG38 — Bloque C: Verificación de marcadores de estado EXPERIMENTAL
 en las funciones señaladas en la tabla de 40 huérfanas:
   - #1: StickModelsJm :: modal_analysis_shear_building
-  - #6: SteelOptimizerJm :: design_castellated
-  - #9: SteelOptimizerJm :: aisc_beam_column_interaction
+  - #6: ParetoSteel :: design_castellated
+  - #9: ParetoSteel :: aisc_beam_column_interaction
   - #13: SlopeStabilityJm :: evaluate_bray_travasarou
   - #15: ScaffoldLoadsJm :: design_load
   - #17: IndustrialJm :: evaluate_chimney
@@ -14,15 +14,17 @@ en las funciones señaladas en la tabla de 40 huérfanas:
   - #37: ClashDetectionJm :: check_footing_rebar_vs_anchor_bolts
 """
 from __future__ import annotations
+import pytest as _pytest_skip
+_pytest_skip.importorskip("stickmodelsjm")  # dependencia externa opcional: sin ella estos tests se omiten
 
 import stickmodelsjm.core as stick_mod
-import steeloptimizerjm.castellated as cast_mod
-import steeloptimizerjm.design_codes as codes_mod
-import slopestabilityjm.bray_travasarou as bray_mod
+import paretosteel.castellated as cast_mod
+import paretosteel.design_codes as codes_mod
+import slipcircle.bray_travasarou as bray_mod
 import scaffoldloadsjm.core as scaf_mod
-import industrialjm.chimneys as chim_mod
+import plantstruct.chimneys as chim_mod
 import grasshopperbridgejm.core as gh_mod
-import dynamicsjm.systems.fps_isolator as fps_mod
+import seismodyn.systems.fps_isolator as fps_mod
 import clashdetectionjm.core as clash_mod
 
 

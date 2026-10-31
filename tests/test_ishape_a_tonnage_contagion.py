@@ -17,10 +17,10 @@ Para un perfil IPE 300 (h=300 mm, b=150 mm, tw=7.1 mm, tf=10.7 mm, r=15 mm):
 SUBESTIMACIÓN:
     Error = (51.8806 - 53.81) / 53.81 = -3.5856 % (~3.6 % de subestimación).
 
-ALCANCE EN SteelOptimizerJm:
+ALCANCE EN ParetoSteel:
 ----------------------------
-SteelOptimizerJm consume `fastsap.section_catalog.get_section()` a través de
-`steeloptimizerjm.section_bridge`. Toda estimación de masa (M = rho * A * L) o
+ParetoSteel consume `fastsap.section_catalog.get_section()` a través de
+`paretosteel.section_bridge`. Toda estimación de masa (M = rho * A * L) o
 coste de estructura que utilice esta propiedad subestima el tonelaje en un 3.6%
 para perfiles IPE 300 y proporciones similares en perfiles laminados en caliente.
 
@@ -28,6 +28,8 @@ Este test NO arregla fastsap (prohibido modificar fastsap en AG29); fija el
 comportamiento observado y documenta cuantitativamente el error transmitido.
 """
 from __future__ import annotations
+import pytest as _pytest_skip
+_pytest_skip.importorskip("fastsap")  # dependencia externa opcional: sin ella estos tests se omiten
 
 import pytest
 from fastsap.section_catalog import get_section

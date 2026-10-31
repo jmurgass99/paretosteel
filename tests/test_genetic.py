@@ -2,10 +2,10 @@
 from __future__ import annotations
 import pytest
 
-from steeloptimizerjm.catalogs import (
+from paretosteel.catalogs import (
     SteelProfile, all_profiles, filter_profiles, ALL_CATALOGS,
 )
-from steeloptimizerjm.genetic import (
+from paretosteel.genetic import (
     ElementGroup, GAConfig, optimize,
 )
 

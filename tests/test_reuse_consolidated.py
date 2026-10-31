@@ -1,6 +1,6 @@
-"""Tests for consolidated profile reuse matching in SteelOptimizerJm."""
+"""Tests for consolidated profile reuse matching in ParetoSteel."""
 import pytest
-from steeloptimizerjm.reuse import DemandItem, InventoryItem, match_reuse
+from paretosteel.reuse import DemandItem, InventoryItem, match_reuse
 
 
 def test_greedy_reuse_matching_exact():

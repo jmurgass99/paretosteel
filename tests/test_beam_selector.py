@@ -7,7 +7,7 @@ calculadas (φMn = φ·Zx·Fy, φVn = φ·0.6·Fy·Aw).
 """
 import pytest
 
-from steeloptimizerjm.beam_selector import (
+from paretosteel.beam_selector import (
     BeamDemand,
     BeamOptimizationResult,
     optimize_beam,

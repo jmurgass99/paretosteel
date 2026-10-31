@@ -31,21 +31,21 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.castellated import (
+from paretosteel.castellated import (
     CastellatedInput,
     CastellatedResult,
     design_castellated,
 )
-from steeloptimizerjm.services.beam_optimizer import (
+from paretosteel.services.beam_optimizer import (
     BeamOptimizationInput,
     optimize_beam,
 )
-from steeloptimizerjm.pareto_lca import (
+from paretosteel.pareto_lca import (
     ParetoOptimizeInput,
     ParetoGroupSpec,
     run_pareto_lca_optimizer,
 )
-from steeloptimizerjm.cost_lca import (
+from paretosteel.cost_lca import (
     CostLCAInput,
     evaluate_cost_lca,
 )

@@ -39,7 +39,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.design_codes import (
+from paretosteel.design_codes import (
     AiscBeamColumnInput,
     AiscBeamColumnResult,
     calc_B1,

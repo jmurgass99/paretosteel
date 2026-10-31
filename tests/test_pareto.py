@@ -1,7 +1,7 @@
 """Tests para Pareto front."""
 import pytest
 
-from steeloptimizerjm.pareto import Candidate, crowding_distance, pareto_front
+from paretosteel.pareto import Candidate, crowding_distance, pareto_front
 
 
 def test_front_basico():

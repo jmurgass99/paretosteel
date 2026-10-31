@@ -13,7 +13,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steeloptimizerjm.memos.profile_justification import (
+from paretosteel.memos.profile_justification import (
     ProfileMemoInput,
     ProfileMemoResult,
     render_profile_memo,
@@ -211,7 +211,7 @@ class TestCodigoEU:
 class TestMemoFromBeamCandidate:
 
     def test_integration_with_beam_selector(self):
-        from steeloptimizerjm.beam_selector import BeamDemand, optimize_beam
+        from paretosteel.beam_selector import BeamDemand, optimize_beam
 
         result = optimize_beam(BeamDemand(M_kNm=120.0, V_kN=50.0))
         assert result.selected is not None
@@ -227,7 +227,7 @@ class TestMemoFromBeamCandidate:
         assert memo.cumple_flexion  # la seccion seleccionada debe cumplir
 
     def test_memo_contains_section_properties(self):
-        from steeloptimizerjm.beam_selector import BeamDemand, optimize_beam
+        from paretosteel.beam_selector import BeamDemand, optimize_beam
 
         result = optimize_beam(BeamDemand(M_kNm=120.0, V_kN=50.0))
         memo = memo_from_beam_candidate(

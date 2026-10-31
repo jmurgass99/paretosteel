@@ -1,7 +1,7 @@
 """Tests design beam/column multi-código."""
 import pytest
 
-from steeloptimizerjm.design_codes import (
+from paretosteel.design_codes import (
     SteelBeamInput, SteelColumnInput, design_beam_compact, design_column,
 )
 
