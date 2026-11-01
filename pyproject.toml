@@ -37,6 +37,9 @@ Issues = "https://github.com/jmurgass99/paretosteel/issues"
 [tool.setuptools.packages.find]
 include = ["paretosteel*"]
 
+[tool.setuptools.package-data]
+paretosteel = ["data/*.csv"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
