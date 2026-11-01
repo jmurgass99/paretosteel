@@ -1,7 +1,8 @@
 """
-ParetoSteel - AI Copilot for structural steel optimization and frame design.
+ParetoSteel: selección y optimización de perfiles de acero sobre catálogos comerciales
+(enumeración, GA, NSGA-II, evolución diferencial) con comprobaciones AISC/EN simplificadas.
 """
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from .catalogs import SteelProfile, all_profiles, filter_profiles
 from .genetic import optimize, GAConfig, GAResult, ElementGroup

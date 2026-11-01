@@ -62,3 +62,6 @@ Documentos de referencia */
 # herramientas locales de agentes
 .claude-flow/
 .claude/
+
+# salidas de ficheros de los ejemplos (JSON, memorias)
+examples/out/

@@ -30,13 +30,22 @@ class JustificacionResult:
     markdown: str
 
 
+def _ratio(demand: float, phi: float, nominal: float) -> float:
+    """|demanda| / (phi·nominal); 0 sin demanda; inf con demanda y sin capacidad."""
+    if nominal > 0:
+        return abs(demand) / (phi * nominal)
+    return 0.0 if demand == 0 else float("inf")
+
+
 def justificar(inp: JustificacionInput) -> JustificacionResult:
     phi_b = 0.9
     phi_v = 0.9
     phi_c = 0.9
-    rM = abs(inp.Mu_kNm) / (phi_b * inp.Mn_kNm) if inp.Mn_kNm > 0 else 99
-    rV = abs(inp.Vu_kN) / (phi_v * inp.Vn_kN) if inp.Vn_kN > 0 else 99
-    rP = abs(inp.Pu_kN) / (phi_c * inp.Pn_kN) if inp.Pn_kN > 0 else 0
+    # Capacidad ausente (<= 0) con demanda real: el ratio es infinito (no cumple),
+    # nunca 0. Antes un Pn ausente daba rP = 0 y la columna "cumplía" a axil.
+    rM = _ratio(inp.Mu_kNm, phi_b, inp.Mn_kNm)
+    rV = _ratio(inp.Vu_kN, phi_v, inp.Vn_kN)
+    rP = _ratio(inp.Pu_kN, phi_c, inp.Pn_kN)
     # AISC H1
     if rP >= 0.2:
         ic = rP + 8.0 / 9.0 * rM

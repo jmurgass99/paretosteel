@@ -125,7 +125,8 @@ def aisc_e3_critical_stress(
       - Pandeo elástico (KL/r > lambda_c):
           Fcr = 0.877 * Fe
 
-    Invariante: En el punto exacto KL/r = 4.71 * sqrt(E/Fy), ambas ramas coinciden idénticamente.
+    En KL/r = 4.71 * sqrt(E/Fy) (Fy/Fe = 2.25) las dos ramas casi coinciden: 0.658**2.25 = 0.38995
+    frente a 0.877/2.25 = 0.38978 (salto relativo de 4e-4, propio de las ecuaciones de la norma).
     """
     if KL_over_r <= 0.0:
         return Fy, float("inf"), "INELASTIC", 4.71 * math.sqrt(E / Fy)

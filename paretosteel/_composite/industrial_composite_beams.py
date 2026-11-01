@@ -23,6 +23,7 @@ from .aisc_composite_beam import (
     AISCBeamSection,
     AISCSlabSpec,
     AISCStudSpec,
+    aisc_concrete_modulus,
     verify_aisc_composite_beam,
 )
 from .composite_beam import (
@@ -95,6 +96,10 @@ class IndustrialMezzanineDemand:
             raise ValueError("span_m y spacing_m deben ser estrictamente positivos.")
         if self.slab_thickness_mm <= 0:
             raise ValueError("slab_thickness_mm debe ser estrictamente positivo.")
+        if self.deck_height_mm < 0 or self.deck_height_mm >= self.slab_thickness_mm:
+            raise ValueError(
+                "deck_height_mm debe estar en [0, slab_thickness_mm): slab_thickness_mm es el "
+                "canto TOTAL (chapa + hormigón) y debe quedar hormigón sobre la chapa.")
         if self.concrete_f_c_MPa <= 0:
             raise ValueError("concrete_f_c_MPa debe ser estrictamente positivo.")
 
@@ -269,8 +274,13 @@ def design_industrial_composite_beam(
             Fy_MPa=profile.Fy_MPa,
             Es_MPa=profile.Es_MPa,
         )
+        # AISCSlabSpec.t_slab_mm es el hormigón POR ENCIMA de la chapa (el motor
+        # AISC suma h_deck al brazo). `slab_thickness_mm` es el canto TOTAL, así que
+        # se pasa el canto sobre nervios, igual que hace la rama EC4 (hc = total - hp).
+        # Antes se pasaba el total y la chapa contaba dos veces (brazo +h_deck,
+        # bloque comprimido y I_tr inflados).
         aisc_slab = AISCSlabSpec(
-            t_slab_mm=demand.slab_thickness_mm,
+            t_slab_mm=demand.slab_thickness_mm - demand.deck_height_mm,
             fc_MPa=demand.concrete_f_c_MPa,
             wc_kg_m3=demand.concrete_density_kg_m3,
             h_deck_mm=demand.deck_height_mm,
@@ -289,7 +299,10 @@ def design_industrial_composite_beam(
             # Nominal stud capacity
             d_s = stud_spec.diameter_mm
             Asa = math.pi * (d_s / 2.0) ** 2
-            Ec = 0.043 * ((demand.concrete_density_kg_m3 / 16.0185) ** 1.5) * math.sqrt(demand.concrete_f_c_MPa * 145.038) * 6.89476
+            # Ec SI = 0,043·wc^1,5·√f'c (wc en kg/m³, f'c en MPa), el mismo del motor
+            # de verificación. Antes se aplicaba el coeficiente SI 0,043 a wc en pcf y
+            # f'c en psi y se multiplicaba por 6,89: Ec salía un 30 % alto.
+            Ec = aisc_concrete_modulus(demand.concrete_f_c_MPa, demand.concrete_density_kg_m3)
             Qn_approx = min(
                 0.5 * Asa * math.sqrt(demand.concrete_f_c_MPa * Ec),
                 stud_spec.Rg * stud_spec.Rp * Asa * stud_spec.fu_MPa,
@@ -423,11 +436,23 @@ def design_industrial_composite_beam(
         Av_mm2 = max(profile.A_mm2 - 2 * profile.bf_mm * profile.tf_mm, profile.d_mm * profile.tw_mm)
         V_rd_kN = (Av_mm2 * (fyd / math.sqrt(3))) / 1000.0
 
-        # Deflection estimate with approximate composite inertia
+        # Deflection estimate with approximate composite inertia.
+        # LIMITE DOCUMENTADO: el modulo del hormigon 9500*((fck+8)/10)^(1/3) MPa no es
+        # el Ecm de EN 1992-1-1 Tabla 3.1 (22000*(fcm/10)^0.3); para C28 da n ~ 13,7,
+        # del orden de un n a largo plazo. Se conserva y se declara (CHANGELOG/README).
         n_modular = profile.Es_MPa / (9500.0 * ((fck + 8) / 10.0) ** (1.0 / 3.0))
         A_c_equiv = (b_eff_mm * hc_mm) / n_modular
         d_c_center = profile.d_mm / 2.0 + hp_mm + hc_mm / 2.0
-        I_tr = profile.Ix_mm4 + A_c_equiv * (d_c_center ** 2)
+        # Seccion homogeneizada: Ia + Ic/n + (Aa*Ac/n)/(Aa + Ac/n)*d^2 (Steiner con el
+        # eje neutro de la seccion mixta). Antes se sumaba Ac/n*d^2 respecto al eje de
+        # la viga de acero, como si el acero tuviera area infinita: I_tr salia ~2,5
+        # veces mayor (IPE270, b_eff 2 m, hc 70 mm) y las flechas EC4 ~2,5 veces menores.
+        I_c_own = A_c_equiv * hc_mm ** 2 / 12.0
+        I_tr = (
+            profile.Ix_mm4
+            + I_c_own
+            + (profile.A_mm2 * A_c_equiv) / (profile.A_mm2 + A_c_equiv) * d_c_center ** 2
+        )
         I_eff = profile.Ix_mm4 + math.sqrt(min(1.0, eta_degree)) * (I_tr - profile.Ix_mm4)
 
         delta_live = (5.0 * loads["w_live_N_mm"] * (L_span_mm ** 4)) / (384.0 * profile.Es_MPa * I_eff)

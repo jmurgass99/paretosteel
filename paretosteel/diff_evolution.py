@@ -60,6 +60,8 @@ class DEColumnResult:
     utilization_P: float
     slenderness: float
     feasible: bool
+    #: Interacción AISC H1-1a/H1-1b con φMn = φ·Fy·Sx; None si no hay momento.
+    interaction_ratio: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -295,6 +297,20 @@ def optimize_column_de(
         Pn_kN = _PHI_COMP * Fcr * p.A / 1000.0
         return Pn_kN, kl_over_r
 
+    def _interaction(p: SteelProfile, Pn: float) -> Optional[float]:
+        """AISC H1-1a/b con φPn (ya minorado) y φMn = φ·Fy·Sx; None sin momento."""
+        if not (moment_kNm > 0 and p.d > 0):
+            return None
+        if Pn <= 0:
+            return float("inf")
+        Sx_m3 = p.Ix / (p.d / 2.0)
+        Mn_kNm = _PHI_FLEX * Fy_Pa * Sx_m3 / 1000.0
+        ratio_P = axial_kN / Pn
+        ratio_M = moment_kNm / Mn_kNm if Mn_kNm > 0 else float("inf")
+        if ratio_P >= 0.2:
+            return ratio_P + 8.0 / 9.0 * ratio_M
+        return ratio_P / 2.0 + ratio_M
+
     def objective(x):
         idx = int(round(x[0]))
         idx = max(0, min(idx, n - 1))
@@ -312,17 +328,10 @@ def optimize_column_de(
             penalty += _PENALTY
         else:
             # Si hay momento, verificar interaccion AISC H1
-            if moment_kNm > 0 and p.d > 0:
-                Sx_m3 = p.Ix / (p.d / 2.0)
-                Mn_kNm = _PHI_FLEX * Fy_Pa * Sx_m3 / 1000.0
-                ratio_P = axial_kN / Pn
-                ratio_M = moment_kNm / Mn_kNm if Mn_kNm > 0 else 99.0
-                if ratio_P >= 0.2:
-                    ic = ratio_P + 8.0 / 9.0 * ratio_M
-                else:
-                    ic = ratio_P / 2.0 + ratio_M
+            ic = _interaction(p, Pn)
+            if ic is not None:
                 if ic > 1.0:
-                    penalty += _PENALTY * (ic - 1.0)
+                    penalty += _PENALTY * min(ic - 1.0, 1e3)
             else:
                 if axial_kN > Pn:
                     penalty += _PENALTY * (axial_kN / max(Pn, 1e-9) - 1.0)
@@ -345,7 +354,13 @@ def optimize_column_de(
     Pn, kl_r = _column_capacity(p)
 
     util_P = axial_kN / Pn if Pn > 0 else float("inf")
+    # Con momento, la factibilidad la decide la interacción H1 que se optimizó;
+    # antes el resultado solo miraba el axil y podía declarar factible un perfil
+    # con interacción > 1.
+    ic = _interaction(p, Pn)
     feasible = util_P <= 1.0 + 1e-9 and kl_r <= 200.0
+    if ic is not None:
+        feasible = feasible and ic <= 1.0 + 1e-9
 
     return DEColumnResult(
         section=p.designation,
@@ -355,6 +370,7 @@ def optimize_column_de(
         utilization_P=util_P,
         slenderness=kl_r,
         feasible=feasible,
+        interaction_ratio=ic,
     )
 
 

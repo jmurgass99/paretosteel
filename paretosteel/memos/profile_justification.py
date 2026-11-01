@@ -165,6 +165,14 @@ else:
 # Funcion principal
 # ---------------------------------------------------------------------------
 
+def _memo_phi(code: str) -> tuple[float, float]:
+    """(phi_b, phi_v) que aplica la memoria a las capacidades NOMINALES."""
+    c = code.upper()
+    if c in ("EU", "SG"):
+        return 1.00, 1.00  # gamma_M0 = 1.0
+    return 0.90, 0.90
+
+
 def render_profile_memo(inp: ProfileMemoInput) -> ProfileMemoResult:
     """Genera la memoria de justificacion del perfil seleccionado.
 
@@ -175,16 +183,7 @@ def render_profile_memo(inp: ProfileMemoInput) -> ProfileMemoResult:
         ProfileMemoResult con markdown, latex y ratios.
     """
     # Factores LRFD
-    code = inp.code.upper()
-    if code in ("US", "CO"):
-        phi_b = 0.90
-        phi_v = 0.90
-    elif code in ("EU", "SG"):
-        phi_b = 1.00  # gamma_M0 = 1.0
-        phi_v = 1.00
-    else:
-        phi_b = 0.90
-        phi_v = 0.90
+    phi_b, phi_v = _memo_phi(inp.code)
 
     # Calculos
     phi_Mn = phi_b * inp.Mn_kNm
@@ -219,7 +218,12 @@ def render_profile_memo(inp: ProfileMemoInput) -> ProfileMemoResult:
     veredicto = "CUMPLE" if cumple else "NO CUMPLE"
     veredicto_M = "OK" if cumple_M else "FALLA"
     veredicto_V = "OK" if cumple_V else "FALLA"
-    veredicto_D = "OK" if cumple_delta else "FALLA"
+    # Sin límite de flecha (sin carga de servicio) la flecha NO se comprobó: no es
+    # un OK ni una FALLA medida. `cumple_delta` ya es False por ratio infinito.
+    if inp.delta_limit_mm > 0:
+        veredicto_D = "OK" if cumple_delta else "FALLA"
+    else:
+        veredicto_D = "NO VERIFICADA (sin carga de servicio)"
 
     md_lines = [
         f"# Justificacion del Perfil Seleccionado: {inp.section_name}",
@@ -319,6 +323,15 @@ def memo_from_beam_candidate(
 ) -> ProfileMemoResult:
     """Genera memo desde un BeamCandidate del beam_selector.
 
+    El candidato trae capacidades de DISEÑO (φMn, φVn) y `render_profile_memo`
+    espera NOMINALES (aplica él el φ). Por eso se divide por el φ con que las
+    calculó `beam_selector`: φ de flexión según el código (el mismo que aplica la
+    memoria) y φv = 0,90 fijo en cortante. Con code="US" el ratio de la memoria es
+    exactamente el del selector. `code` debe ser el mismo de `BeamDemand.code`.
+
+    Sin carga de servicio (`w_kN_m <= 0`) la flecha queda NO VERIFICADA y la
+    memoria no firma CUMPLE.
+
     Args:
         candidate: BeamCandidate con name, Mn_design_kNm, Vn_design_kN, etc.
         span_m: luz de la viga.
@@ -330,8 +343,13 @@ def memo_from_beam_candidate(
     Returns:
         ProfileMemoResult.
     """
+    from ..beam_selector import _PHI_SHEAR as _SELECTOR_PHI_V
     from ..catalog_unified import all_sections
     from ..deflection import deflection_udl
+
+    phi_b, _ = _memo_phi(code)
+    Mn_nominal = candidate.Mn_design_kNm / phi_b
+    Vn_nominal = candidate.Vn_design_kN / _SELECTOR_PHI_V
 
     # Buscar seccion en catalogo unificado
     sec = None
@@ -348,8 +366,8 @@ def memo_from_beam_candidate(
             w_kN_m=w_kN_m,
             Mu_kNm=candidate.flexural_ratio * candidate.Mn_design_kNm,
             Vu_kN=candidate.shear_ratio * candidate.Vn_design_kN,
-            Mn_kNm=candidate.Mn_design_kNm,
-            Vn_kN=candidate.Vn_design_kN,
+            Mn_kNm=Mn_nominal,
+            Vn_kN=Vn_nominal,
             Fy_MPa=Fy_MPa,
             code=code,
         ))
@@ -367,7 +385,8 @@ def memo_from_beam_candidate(
 
     # Deflexion
     delta_mm = 0.0
-    delta_limit_mm = span_m * 1000.0 / deflection_limit
+    # Sin carga de servicio no hay flecha que comparar: límite 0 = "no verificada".
+    delta_limit_mm = span_m * 1000.0 / deflection_limit if w_kN_m > 0 else 0.0
     if w_kN_m > 0 and Ix_cm4 > 0:
         w_N_mm = w_kN_m * 1000.0 / 1000.0  # kN/m -> N/mm
         L_mm = span_m * 1000.0
@@ -388,8 +407,8 @@ def memo_from_beam_candidate(
         ry_cm=ry_cm,
         Mu_kNm=Mu,
         Vu_kN=Vu,
-        Mn_kNm=candidate.Mn_design_kNm,
-        Vn_kN=candidate.Vn_design_kN,
+        Mn_kNm=Mn_nominal,
+        Vn_kN=Vn_nominal,
         delta_mm=delta_mm,
         delta_limit_mm=delta_limit_mm,
         Fy_MPa=Fy_MPa,

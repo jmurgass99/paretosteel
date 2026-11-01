@@ -99,11 +99,18 @@ except Exception as _exc:  # pragma: no cover - defensive
 
 
 def all_profiles() -> list[SteelProfile]:
-    """Lista plana de todos los perfiles disponibles."""
-    out: list[SteelProfile] = []
+    """Lista plana de todos los perfiles disponibles, UNA entrada por designación.
+
+    Los nueve W de ``CATALOG_AISC_W`` están tecleados a mano y también existen en
+    la base AISC v16 (``W_FULL``), con valores distintos (W8X31: Ix 4240 frente a
+    4579 cm⁴). Antes la lista devolvía las dos copias; ahora la base AISC v16,
+    que se carga después, sustituye a la copia manual.
+    """
+    by_name: dict[str, SteelProfile] = {}
     for cat in ALL_CATALOGS.values():
-        out.extend(cat.values())
-    return out
+        for p in cat.values():
+            by_name[p.designation] = p
+    return list(by_name.values())
 
 
 def filter_profiles(*, family: str | None = None,

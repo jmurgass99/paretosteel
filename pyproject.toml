@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "paretosteel"
-version = "1.0.0"
-description = "Multi-objective steel structure optimization: NSGA-II and genetic algorithms over commercial catalogues (AISC, European), weight, cost by country and LCA objectives, beam and column selectors, bracing, castellated and composite beams, LTB audit (AISC 360-22, EN 1993-1-1)."
+version = "1.1.0"
+description = "Steel member selection and optimization over commercial section catalogues (AISC v16 database, EN IPE/HEA/HEB): catalogue enumeration with non-dominated sorting, genetic algorithm by member groups, NSGA-II with Numba kernels and SciPy differential evolution; simplified AISC 360 and EN 1993-1-1 checks (compact flexure, E3 compression, H1 interaction, lateral-torsional buckling, HSS torsion), AISC 341 brace capacity design, AISC 360 and EN 1994-1-1 composite floor beams, bill of quantities with cost and embodied carbon, price sensitivity, reuse matching and a REST API."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Jesús Murgas" }]
-keywords = ["steel-optimization", "nsga-ii", "genetic-algorithm", "pareto", "aisc-360", "en-1993-1-1", "lca", "structural-engineering"]
+keywords = ["steel", "steel-design", "section-optimization", "pareto", "nsga-ii", "genetic-algorithm", "differential-evolution", "aisc-360", "aisc-341", "en-1993-1-1", "en-1994-1-1", "eurocode-3", "composite-beam", "bracing", "embodied-carbon", "bill-of-quantities", "structural-engineering", "loadpath"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",

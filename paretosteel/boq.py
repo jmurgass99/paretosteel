@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 from .catalog_unified import all_sections
-from .catalogs import ALL_CATALOGS
+from .catalogs import ALL_CATALOGS, all_profiles  # noqa: F401  (ALL_CATALOGS se reexporta)
 from .cost_by_country import get_cost, estimate_cost
 
 
@@ -83,12 +83,12 @@ def _get_tabulated_profile_data(name: str) -> tuple[float, float]:
             w_per_m = (sec.A_cm2 * 1e-4) * 7850.0
             return sec.A_cm2, w_per_m
 
-    # 2. Buscar en catálogos AISC / Euro
-    for fam, cat in ALL_CATALOGS.items():
-        for pname, pobj in cat.items():
-            if pname.upper().replace(" ", "") == norm_name:
-                a_cm2 = pobj.A * 1e4
-                return a_cm2, pobj.weight_per_m
+    # 2. Buscar en catálogos AISC / Euro (sin duplicados: la base AISC v16 manda
+    #    sobre las copias tecleadas a mano de `catalogs.CATALOG_AISC_W`).
+    for pobj in all_profiles():
+        if pobj.designation.upper().replace(" ", "") == norm_name:
+            a_cm2 = pobj.A * 1e4
+            return a_cm2, pobj.weight_per_m
 
     raise KeyError(f"Perfil '{name}' no encontrado en los catálogos tabulados EN 10365 / AISC.")
 

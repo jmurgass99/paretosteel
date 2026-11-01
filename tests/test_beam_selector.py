@@ -82,10 +82,11 @@ class TestFactibilidad:
 
 class TestCapacidadCoherente:
     def test_flexion_phi_Zx_Fy(self):
-        # W12X26: Zx = 615 cm³, Fy = 345 MPa, φ = 0.90 (LRFD US).
+        # W12X26: Zx = 37,2 in³ = 609,6 → 610 cm³ (AISC; el catálogo tenía 615 hasta
+        # la 1.1.0), Fy = 345 MPa, φ = 0.90 (LRFD US).
         res = optimize_beam(BeamDemand(M_kNm=50.0, V_kN=20.0), standard="ASTM")
         w12 = next(c for c in res.candidates if c.name == "W12X26")
-        esperado = 0.90 * 615.0e3 * 345.0 / 1.0e6  # kN·m
+        esperado = 0.90 * 610.0e3 * 345.0 / 1.0e6  # kN·m
         assert w12.Mn_design_kNm == pytest.approx(esperado, rel=1e-9)
 
     def test_cortante_phi_0p6_Fy_Aw(self):

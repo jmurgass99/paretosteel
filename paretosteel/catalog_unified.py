@@ -1,4 +1,9 @@
-"""Catalogo unificado ASTM + EN (perfiles W, IPE, HEA, HEB, UC, UB)."""
+"""Catalogo unificado ASTM + EN (perfiles W, IPE, HEA, HEB).
+
+Unidades: mm, cm², cm⁴, cm³. Los W se contrastan en los tests contra la base AISC v16
+empaquetada (`data/aisc_v16.csv`: A, d, bf, Ix, Iy); 1.1.0 corrigió Ix, Iy o Zx de W12X26,
+W14X30 y W18X35 (W14X30: Zx 750 → 775 cm³ = 47,3 in³). No hay perfiles UC/UB.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,10 +24,10 @@ class UnifiedSection:
 
 
 _CATALOG: list[UnifiedSection] = [
-    UnifiedSection("W12X26",  "ASTM", 310, 165, 5.8, 9.6, 49.3, 8500, 740, 615),
-    UnifiedSection("W14X30",  "ASTM", 351, 171, 6.9, 9.8, 57.0, 12000, 820, 750),
+    UnifiedSection("W12X26",  "ASTM", 310, 165, 5.8, 9.6, 49.3, 8500, 720, 610),
+    UnifiedSection("W14X30",  "ASTM", 351, 171, 6.9, 9.8, 57.0, 12110, 816, 775),
     UnifiedSection("W16X40",  "ASTM", 407, 178, 7.7, 12.8, 76.1, 21560, 1200, 1196),
-    UnifiedSection("W18X35",  "ASTM", 449, 152, 7.6, 10.8, 66.5, 21000, 670, 1090),
+    UnifiedSection("W18X35",  "ASTM", 449, 152, 7.6, 10.8, 66.5, 21230, 637, 1090),
     UnifiedSection("W21X44",  "ASTM", 525, 165, 8.9, 11.4, 83.9, 35080, 860, 1560),
     UnifiedSection("W24X55",  "ASTM", 599, 178, 10.0, 12.8, 104.5, 56190, 1210, 2196),
     UnifiedSection("IPE200",  "EN",   200, 100, 5.6, 8.5, 28.5, 1943, 142, 220),

@@ -250,7 +250,9 @@ def create_app():
             "FastAPI no está instalado. Instale: pip install paretosteel[api]"
         ) from exc
 
-    app = FastAPI(title="ParetoSteel API", version="1.0.0")
+    from .. import __version__
+
+    app = FastAPI(title="ParetoSteel API", version=__version__)
     app.include_router(create_router())
     return app
 

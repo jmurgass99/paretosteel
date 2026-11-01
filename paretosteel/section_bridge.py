@@ -28,12 +28,17 @@ def apply_proposed_sections(
     Args:
         model: Instancia inmutable de Model canónico.
         proposed_sections: Diccionario {element_id: nombre_seccion o SectionRef}.
-        validate_against_catalog: Si es True, verifica la existencia en fastsap.section_catalog.
+        validate_against_catalog: Si es True, verifica la existencia en fastsap.section_catalog
+            (requiere el paquete ``fastsap``, que no es dependencia de paretosteel). Con False
+            el puente funciona sin fastsap y no valida nada contra catálogo.
 
     Returns:
         Nueva instancia inmutable de Model con las secciones actualizadas.
     """
-    from fastsap.section_catalog import get_section, SectionPropertyUnavailable
+    # fastsap solo hace falta para VALIDAR: importarlo siempre hacía que
+    # validate_against_catalog=False fallase con ModuleNotFoundError sin fastsap.
+    if validate_against_catalog:
+        from fastsap.section_catalog import get_section
 
     new_elements: list[Element] = []
     seen_sections: dict[str, SectionRef] = {s.name: s for s in model.sections}

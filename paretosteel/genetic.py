@@ -2,7 +2,9 @@
 
 Cada gen es un perfil de acero asignado a un grupo de elementos.
 El cromosoma representa la asignación grupo → perfil.
-Fitness = peso total + penalización por demanda excedida (DCR > 1).
+Fitness = peso total + penalización proporcional al déficit relativo de inercia
+(min_Ix) y de área (min_A) de cada grupo. No hay comprobación normativa dentro del
+GA: los mínimos de Ix y A los fija quien llama (de un análisis o predimensionado).
 """
 from __future__ import annotations
 import logging
@@ -82,9 +84,21 @@ def _evaluate(assignment: tuple[tuple[str, str], ...],
 
 def _candidates_for_group(g: ElementGroup,
                             profile_lookup: dict[str, SteelProfile]) -> list[str]:
-    """Perfiles válidos para un grupo (filtro por familia + inercia/area mínima)."""
-    cands = filter_profiles(family=g.family_filter, min_Ix=0.0, min_A=0.0)
-    return [p.designation for p in cands]
+    """Perfiles candidatos de un grupo: los del catálogo de ESTA optimización
+    (``profile_lookup``, que respeta ``custom_profiles``) filtrados por familia.
+
+    Las restricciones min_Ix/min_A no filtran: se imponen por penalización en
+    ``_evaluate``. Antes se leía el catálogo global, y con ``custom_profiles``
+    el GA elegía perfiles que no estaban en ``profile_lookup`` (KeyError).
+    """
+    fam = g.family_filter.upper() if g.family_filter else None
+    cands = [p.designation for p in profile_lookup.values()
+             if fam is None or p.family == fam]
+    if not cands:
+        raise ValueError(
+            f"El grupo '{g.name}' no tiene perfiles de la familia "
+            f"'{g.family_filter}' en el catálogo de la optimización")
+    return cands
 
 
 def _random_individual(groups: dict[str, ElementGroup],
