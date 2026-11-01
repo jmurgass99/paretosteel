@@ -1,0 +1,17 @@
+Flexión de sección compacta HEB300, W_pl = 1869 cm³, fy = 355 MPa:
+  US: Mn = 663.5 kN·m, factor 0.90 → M_d = 597.1 kN·m
+  EU: Mn = 663.5 kN·m, factor 1.00 → M_d = 663.5 kN·m
+  AU: Mn = 663.5 kN·m, factor 0.90 → M_d = 597.1 kN·m
+
+Compresión HEB300 (eje débil, iz = √(Iz/A) = 75.8 mm):
+  L [m]    λc  US φPn EU Nb,Rd  AU φNc  EU/US
+    2.0  0.35    4532     4901    4532  1.081
+    4.0  0.69    3901     3866    3901  0.991
+    6.0  1.04    3039     2748    3039  0.904
+    8.0  1.38    2143     1885    2143  0.880
+   10.0  1.73    1401     1329    1401  0.949
+   12.0  2.07     973      977     973  1.004
+  A mano en 6 m (λc = 1.036): US 0,9·0,658^λc²·Fy·A = 3039 kN; EU Φ = 1.242, χ = 0.5192 → 2748 kN
+  'AU' idéntico a 'US' en todas las esbelteces probadas: sí → no es AS 4100.
+
+AISC E3 en el cambio de rama KL/r = 4,71·√(E/Fy) = 113.40: Fcr = 134.6610 MPa (INELASTIC) y 134.6098 MPa (ELASTIC), salto relativo 3.8e-04, propio de la norma: 0,658^2,25 = 0.38995 frente a 0,877/2,25 = 0.38978.

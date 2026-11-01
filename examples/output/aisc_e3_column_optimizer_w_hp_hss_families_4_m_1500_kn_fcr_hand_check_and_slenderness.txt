@@ -1,0 +1,19 @@
+Límite inelástico/elástico 4,71·√(E/Fy) = 113.4
+
+L = 4.0 m, P_u = 1500.0 kN
+  familia perfil             kg/m   KL/r      Fe    Fcr     φPn  a mano rama      
+  W       W8X40              59.5   76.9   334.0  223.9  1521.1  1521.1 inelástico
+  HP      HP10X42            62.5   65.5   460.2  252.1  1815.0  1815.0 inelástico
+  HSS     HSS12X12X3/16      44.4   32.7  1845.8  319.0  1509.8  1509.8 inelástico
+  Más ligero: HSS12X12X3/16 (HSS, 44.4 kg/m); el W elegido pesa +34% respecto a él.
+  HSS12X12X3/16: b/t = 65.8 frente a λr = 33.7 → pared ESBELTA: §E7 reduciría φPn y el servicio no lo comprueba
+
+L = 9.0 m, P_u = 1500.0 kN
+  familia perfil             kg/m   KL/r      Fe    Fcr     φPn  a mano rama      
+  W       W12X72            107.1  116.6   145.3  127.4  1561.2  1561.2 elástico  
+  HP      HP14X73           108.6  101.5   191.8  162.5  2018.8  2018.8 inelástico
+  HSS     HSS16.000X0.250    62.6   63.4   490.8  257.1  1716.5  1716.5 inelástico
+  Más ligero: HSS16.000X0.250 (HSS, 62.6 kg/m); el W elegido pesa +71% respecto a él.
+  HSS16.000X0.250: D/t = 68.8 frente a λr = 63.8 → pared ESBELTA: §E7 reduciría φPn y el servicio no lo comprueba
+
+A 9 m todas las familias necesitan un perfil más pesado que a 4 m. El HSS tiene el mismo radio de giro en los dos ejes y por eso gana en compresión centrada, pero los HSS elegidos por peso son de pared esbelta: sin la comprobación de §E7 esa ventaja no está demostrada.

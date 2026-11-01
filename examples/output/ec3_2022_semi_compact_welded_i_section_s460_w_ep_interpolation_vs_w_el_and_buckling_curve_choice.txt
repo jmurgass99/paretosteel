@@ -1,0 +1,12 @@
+Sección 300×15 + 600×8, S460: ε = 0.7148; A = 13800 mm², W_el = 3159.3·10³ mm³, W_pl = 3487.5·10³ mm³ (W_pl/W_el = 1.104)
+  ala: c/t = 138.9/15 = 9.26 → 12.96·ε (clase 2 ≤ 10, clase 3 ≤ 14)
+  alma: c/t = 585.9/8 = 73.23 → 102.46·ε (clase 2 ≤ 83, clase 3 ≤ 124)
+  ξ = max(0.740, 0.475) = 0.740 → W_ep = W_pl − ξ·(W_pl − W_el) = 3244.8·10³ mm³
+
+N_cr,z = π²·E·Iz/L² = 5598 kN con Iz = 67.53·10⁶ mm⁴; N_Ed = 1500 kN, M_Ed = 900 kN·m
+  curva  clase M_Rd 2022 M_Rd 2005 ganancia      χ  N_b,Rd utiliz.
+  a0         3    1492.6    1453.3    2.71%  0.675    4288   0.953
+  c          3    1492.6    1453.3    2.71%  0.503    3195   1.073
+  M_Rd a mano: W_ep·fy = 1492.6 kN·m (función 1492.6); W_el·fy = 1453.3 kN·m
+
+La curva por defecto a0 da χ = 0.675; la curva c de una I soldada en z–z da χ = 0.503 (-25%). Con a0 la barra cumple (utilización 0.953); con la curva c no cumple (1.073). La curva hay que pasarla siempre.

@@ -1,0 +1,13 @@
+18 perfiles EN evaluados, 16 factibles
+  perfil     kg/m    DCR modo                   M_Rd   M_Ed  δ uso  δ tot
+  IPE270     36.0  0.751 Flecha Total          360.0  229.9   12.1   25.0
+  IPE300     42.2  0.574 Flecha Total          443.8  230.5    9.3   19.1
+  IPE330     49.1  0.446 Flecha Total          534.2  231.2    7.2   14.9
+  IPE360     57.1  0.365 Flexión Compuesta     635.5  232.1    5.6   11.7
+  HEA240     60.3  0.636 Flecha Total          486.6  232.4   10.2   21.2
+Elegido: IPE270 (36.0 kg/m), gobierna «Flecha Total» con DCR 0.751
+
+A mano (IPE270): b_eff = 2000 mm; A_a (chapas) = 4401 mm²; N_pl,a = 1562 kN; N_c,f = 0,85·18.67·2000·70 = 2221 kN
+  Eje neutro en la losa: x = 49.2 mm; M_pl,Rd = N_pl,a·(70 + 50 + 135 − 24.6) = 360.0 kN·m (función 360.0)
+  n del código = 13.74 (con Ecm de EN 1992-1-1 sería n0 = 6.19); Ac/n = 10192 mm²; d = 220 mm
+  I_tr = 215.2·10⁶ mm⁴ (fórmula de 1.0.0: 551.2·10⁶, ×2.56); δ_uso = 5·9.8·8000⁴/(384·200000·I_tr) = 12.14 mm (función 12.14) frente a L/360 = 22.2 mm

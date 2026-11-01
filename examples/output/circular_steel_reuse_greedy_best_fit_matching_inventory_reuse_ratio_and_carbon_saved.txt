@@ -1,0 +1,11 @@
+  demanda Wpl req. → perfil            Wpl  holgura  t CO₂
+  V1           600 → IPE300-usado      628      +5%   0.47
+  V2           450 → IPE270-usado      484      +8%   0.33
+  V3          1250 → IPE400-usado     1307      +5%   0.98
+  V4           800 → IPE330-usado      804      +0%   0.68
+  V5          1000 → HEB240-usado     1053      +5%   0.92
+  V6          1500 → sin perfil adecuado
+
+Cubiertas 5/6; ratio de reutilización (por Wpl requerido) 73.2%; CO₂ evitado 3.39 t
+Exhaustivo: como máximo se pueden cubrir 5 demandas; el voraz cubre 5 (óptimo en este caso).
+Wpl suficiente no basta para reutilizar: hay que comprobar longitud, estado, grado del acero y uniones; el módulo solo empareja una capacidad escalar.

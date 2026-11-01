@@ -1,0 +1,26 @@
+     f   A laminados  B alveolares     C celosía   más barata
+   0.5         11700         14225         16300   A laminados
+   0.6         14040         16110         17860   A laminados
+   0.7         16380         17995         19420   A laminados
+   0.8         18720         19880         20980   A laminados
+   0.9         21060         21765         22540   A laminados
+   1.0         23400         23650         24100   A laminados
+   1.1         25740         25535         25660   B alveolares
+   1.2         28080         27420         27220   C celosía
+   1.3         30420         29305         28780   C celosía
+   1.4         32760         31190         30340   C celosía
+   1.5         35100         33075         31900   C celosía
+   1.6         37440         34960         33460   C celosía
+   1.7         39780         36845         35020   C celosía
+   1.8         42120         38730         36580   C celosía
+   1.9         44460         40615         38140   C celosía
+   2.0         46800         42500         39700   C celosía
+
+Cambios de la más barata en f = [1.1, 1.2]; elección «robusta» (gana en más factores): C celosía
+
+Precios de equilibrio (factor sobre 1300 USD/t):
+  A laminados = B alveolares: f* = 1.0549 (a mano 1.0549) → 1371 USD/t; por encima gana la de menos acero
+  B alveolares = C celosía: f* = 1.1385 (a mano 1.1385) → 1480 USD/t; por encima gana la de menos acero
+  A laminados = C celosía: f* = 1.0897 (a mano 1.0897) → 1417 USD/t; por encima gana la de menos acero
+
+La barrida es discreta (paso 0,1): los cambios se dan en el primer factor de la rejilla tras el equilibrio exacto, que es el que da break_even_price.

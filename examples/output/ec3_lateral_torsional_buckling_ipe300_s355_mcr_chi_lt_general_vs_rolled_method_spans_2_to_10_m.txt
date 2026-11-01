@@ -1,0 +1,17 @@
+IPE300, h/b = 2,0: caso general → curva a (α = 0.21); método laminados → curva b (α = 0.34)
+M_pl,Rd = Wpl·fy/γ_M1 = 222.9 kN·m (γ_M1 = 1,0)
+
+  L [m]    C1     Mcr  a mano  λ̄_LT χ gen.  Mb,Rd χ lam.  Mb,Rd
+    2.0 1.000   505.1   505.1  0.664  0.864  192.6  0.887  197.8
+    4.0 1.000   159.7   159.7  1.181  0.542  120.8  0.590  131.5
+    6.0 1.000    90.5    90.5  1.570  0.345   76.8  0.399   88.9
+    8.0 1.000    63.1    63.1  1.879  0.250   55.7  0.283   63.1
+   10.0 1.000    48.7    48.7  2.141  0.196   43.8  0.218   48.7
+    2.0 1.127   569.3   569.3  0.626  0.880  196.2  0.905  201.8
+    4.0 1.127   180.0   180.0  1.113  0.587  130.9  0.631  140.6
+    6.0 1.127   102.0   102.0  1.479  0.382   85.1  0.437   97.3
+    8.0 1.127    71.1    71.1  1.770  0.279   62.1  0.319   71.1
+   10.0 1.127    54.8    54.8  2.016  0.220   48.9  0.246   54.8
+
+Mcr de la función frente a la fórmula a mano: diferencia máxima 3.3e-16; χ_LT del caso general coincide con chi_lt(method='general') de la librería de vigas mixtas.
+En 6 m con C1 = 1: Mb,Rd = 76.8 kN·m por el caso general (curva a) y 88.9 kN·m por el método de laminados (curva b); sin arriostramiento lateral en 6 m la resistencia baja al 34% de M_pl,Rd por el caso general.

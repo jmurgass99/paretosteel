@@ -1,0 +1,18 @@
+Alternativas para una viga de 9 m:
+  IPE450 S275               698.4 kg     768 USD  (1.10 USD/kg)
+  IPE400 S355               596.7 kg     704 USD  (1.18 USD/kg)
+  IPE360 S460               513.9 kg     719 USD  (1.40 USD/kg)
+  HEA360 S275              1008.0 kg    1109 USD  (1.10 USD/kg)
+  armada 500x200 S355       549.0 kg     950 USD  (1.73 USD/kg)
+  alveolar ex-IPE300 S355   379.8 kg     733 USD  (1.93 USD/kg)
+
+Frente de Pareto (3 de 6, coincide con la fuerza bruta), ordenado por peso:
+  alveolar ex-IPE300 S355   379.8 kg     733 USD
+  IPE360 S460               513.9 kg     719 USD
+  IPE400 S355               596.7 kg     704 USD
+Dominadas: IPE450 S275 (por alveolar ex-IPE300 S355); HEA360 S275 (por alveolar ex-IPE300 S355); armada 500x200 S355 (por alveolar ex-IPE300 S355)
+
+Distancia de apiñamiento del frente: alveolar ∞, IPE360 2.000, IPE400 ∞
+  A mano para IPE360 S460: Δpeso/rango + Δcoste/rango = 2.000 (función 2.000); los extremos llevan ∞ para que el frente conserve su amplitud.
+
+La más ligera (alveolar ex-IPE300 S355, 380 kg) cuesta +4% más que la más barata (IPE400 S355, 597 kg): esa es la decisión que el frente deja al proyectista.

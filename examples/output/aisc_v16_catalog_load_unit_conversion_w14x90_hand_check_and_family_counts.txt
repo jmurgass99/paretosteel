@@ -1,0 +1,24 @@
+AISC v16 empaquetado: 2299 perfiles con peso, área e Ix
+  HSS 714, 2L 639, W 289, WT 289, L 137, PIPE 51, MC 40, C 32, S 28, ST 28, HP 22, M 16, MT 14
+
+W14X90 en el CSV: W = 90.0 lb/ft, A = 26.5 in², d = 14 in, Ix = 999.0 in⁴, Iy = 362.0 in⁴
+  magnitud         a mano    paquete     dif.
+  masa [kg/m]      133.93     133.92 -0.0110%
+  A [cm²]          170.97     170.97 +0.0000%
+  d [mm]           355.60     355.60 +0.0000%
+  Ix [cm⁴]       41581.52   41581.38 -0.0003%
+  Iy [cm⁴]       15067.58   15067.53 -0.0003%
+  Máxima diferencia 0.0110%: el paquete usa 1,488 kg/m por lb/ft y 4,1623e-7 m⁴ por in⁴ (exactos: 1.48816 y 4.1623143e-07).
+
+all_profiles(): 1113 perfiles, designaciones repetidas: 0
+  Copia manual de catalogs.CATALOG_AISC_W frente a la base AISC v16 (la que queda en all_profiles):
+  W14X90  Ix  41600 →  41581 cm⁴ (-0.0%)   Iy  15000 →  15068 cm⁴ (+0.5%)
+  W14X74  Ix  33400 →  33090 cm⁴ (-0.9%)   Iy   5660 →   5577 cm⁴ (-1.5%)
+  W14X61  Ix  26600 →  26639 cm⁴ (+0.1%)   Iy   4500 →   4454 cm⁴ (-1.0%)
+  W12X65  Ix  22100 →  22185 cm⁴ (+0.4%)   Iy   7160 →   7242 cm⁴ (+1.2%)
+  W12X53  Ix  17500 →  17690 cm⁴ (+1.1%)   Iy   3910 →   3987 cm⁴ (+2.0%)
+  W10X45  Ix  10400 →  10323 cm⁴ (-0.7%)   Iy   2160 →   2223 cm⁴ (+2.9%)
+  W10X33  Ix   7080 →   7118 cm⁴ (+0.5%)   Iy   1520 →   1523 cm⁴ (+0.2%)
+  W8X31   Ix   4240 →   4579 cm⁴ (+8.0%)   Iy   1540 →   1544 cm⁴ (+0.3%)
+  W8X24   Ix   3410 →   3442 cm⁴ (+0.9%)   Iy    707 →    762 cm⁴ (+7.7%)
+  La mayor discrepancia en Ix es la de W8X31 (+8.0%); los optimizadores usan ya el valor de la base AISC.

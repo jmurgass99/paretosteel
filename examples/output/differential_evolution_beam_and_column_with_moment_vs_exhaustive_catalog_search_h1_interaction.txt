@@ -1,0 +1,10 @@
+Viga biapoyada (familias IPE y W), L = 8 m, w = 25 kN/m
+  IPE DE: IPE450     77.6 kg/m  M 0.430  V 0.109  δ  19.8/22.2 mm | exhaustiva: IPE450   = DE (7 perfiles)
+  W   DE: W21X44     65.5 kg/m  M 0.483  V 0.128  δ  19.0/22.2 mm | exhaustiva: W21X44   = DE (289 perfiles)
+
+Pilar W, H = 4 m, K = 1, P = 900 kN
+  M =   0.0 kN·m  DE: W8X31      46.1 kg/m  P/φPn 0.769  H1     —  factible True | exhaustiva: W8X31    = DE (H1 a mano 0.769)
+  M =  60.0 kN·m  DE: W10X39     58.0 kg/m  P/φPn 0.621  H1 0.870  factible True | exhaustiva: W10X39   = DE (H1 a mano 0.870)
+  M = 150.0 kN·m  DE: W21X48     71.4 kg/m  P/φPn 0.617  H1 0.899  factible True | exhaustiva: W21X48   = DE (H1 a mano 0.899)
+
+Peso del pilar con M = 0, 60 y 150 kN·m: 46.1, 58.0 y 71.4 kg/m (crece con el momento: gobierna la interacción H1). φMn usa Sx (elástico) y no considera pandeo lateral: resultado de predimensionado.

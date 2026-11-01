@@ -1,0 +1,17 @@
+Medición — Spain, fase 'erected', tarifa 3750 USD/t, 1.8 kg CO₂/kg
+  perfil     L [m]  A [cm²]    kg/m       t       USD   t CO₂
+  HEB240     56.00   106.00   83.20   4.659     17472    8.39
+  IPE360     72.00    72.70   57.07   4.109     15409    7.40
+  IPE 240    40.00    39.12   30.70   1.228      4605    2.21
+  W8X31      27.78    58.90   46.13   1.282      4806    2.31
+  TOTAL     195.78                   11.278     42292   20.30
+
+A mano: Σ L·A·7850 (EN) + Σ L·masa AISC (W) = 11.2779 t; función: 11.2779 t (+0.00e+00)
+
+Misma medición en cuatro países (fase montado):
+  ES Spain       3750 USD/t →     42292 USD,  20.30 t CO₂
+  DE Germany     3800 USD/t →     42856 USD,  18.61 t CO₂
+  US USA         3500 USD/t →     39473 USD,  19.74 t CO₂
+  CL Chile       2800 USD/t →     31578 USD,  20.86 t CO₂
+  Las toneladas no cambian (11.278 t); el coste va de 31578 (CL) a 42856 USD (DE), +36%, solo por la tarifa.
+  España por fase: materia prima 18608, fabricado 32142, montado 42292 USD.

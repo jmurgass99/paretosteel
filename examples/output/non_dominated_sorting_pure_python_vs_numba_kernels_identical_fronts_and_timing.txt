@@ -1,0 +1,8 @@
+      N  M frentes  |F0|  puro [ms]  fast [ms]  jit [ms]  iguales
+    200  2      22     7       48.0       0.70      0.56       sí
+    400  2      38     4      219.5       3.81      2.35       sí
+    400  3      13    22      227.5       2.83      3.49       sí
+    800  3      20    26     1180.6      20.69     12.29       sí
+
+Rangos idénticos en las tres implementaciones: sí; el kernel `fast` es entre 57 y 80 veces más rápido que el puro.
+Distancia de apiñamiento de un frente de cuatro puntos: [1000000000.0, 1.25, 1.25, 1000000000.0] (a mano: extremos 1e9, interiores 1,25 y 1,25); el punto (4,4) tiene rango 1.

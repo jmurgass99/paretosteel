@@ -1,0 +1,12 @@
+Selector: W18X35, M/φMn = 0.9455, V/φVn = 0.2831
+Memoria : W18X35, flexión 0.9455, cortante 0.2831, flecha 1.130 → NO CUMPLE
+  Ratios iguales a los del selector: sí; motor LaTeX: handcalcs
+  Flecha a mano: 5·20·8000⁴/(384·200000·2.1230e+08) = 25.12 mm frente a L/360 = 22.22 mm → ratio 1.130
+  Escritas out/memo_W18X35.md (51 líneas) y .tex (642 caracteres)
+  La memoria dice NO CUMPLE por flecha: beam_selector solo mira resistencia; con 20 kN/m de servicio en 8 m el W18X35 no llega a L/360 y hay que subir de perfil.
+
+Sin carga de servicio: NO CUMPLE — «- **delta / delta_lim = inf** -- NO VERIFICADA (sin carga de servicio)»
+
+justificar (AISC H1): W12X65 con P_u = 900 kN, M_u = 160 kN·m, V_u = 60 kN; Mn = Zx·Fy = 1590e3·345, Vn = 0,6·Fy·d·tw, Pn = 3200 kN (supuesto, de un cálculo E3 previo)
+  P/φPn = 0.312, M/φMn = 0.324; H1-1a a mano 0.312 + 8/9·0.324 = 0.601 (función 0.601) → CUMPLE
+  Mismo caso sin Pn (capacidad axial ausente): P/φPn = inf, NO CUMPLE (en 1.0.0 un Pn ausente daba P/φPn = 0 y la barra «cumplía» a axil).

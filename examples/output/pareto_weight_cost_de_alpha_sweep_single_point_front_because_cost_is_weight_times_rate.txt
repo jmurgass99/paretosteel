@@ -1,0 +1,8 @@
+IPE en ES (1100 USD/t): 1 solución(es) distinta(s) en 11 valores de α; frente = IPE450 (621 kg, 683 USD)
+  coste/peso = 1100 USD/t, la tarifa del país (1100): el coste no aporta información nueva
+  Exhaustiva: IPE450 (77.6 kg/m); optimize_beam_de: IPE450 (77.6 kg/m) → los tres coinciden.
+W en US (1100 USD/t): 1 solución(es) distinta(s) en 11 valores de α; frente = W21X44 (524 kg, 576 USD)
+  coste/peso = 1100 USD/t, la tarifa del país (1100): el coste no aporta información nueva
+  Exhaustiva: W18X40 (59.5 kg/m); optimize_beam_de: W21X44 (65.5 kg/m) → la DE se queda +10.0% por encima del óptimo exhaustivo.
+
+Un frente peso–coste solo tiene sentido si el coste por kg cambia entre alternativas (grado, fabricación, conexiones), como en el ejemplo pareto_front_weight_vs_cost_*.

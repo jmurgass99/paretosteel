@@ -1,0 +1,13 @@
+Schaffer N.1 (población 40, 60 generaciones)
+  40/40 individuos en el conjunto de Pareto x ∈ [0, 2]; x de 0.0018 a 1.9981
+  máximo |f2 − (√f1 − 2)²| = 0.00e+00  → la población final está sobre el frente analítico
+
+ZDT1, 4 variables (población 80, 300 generaciones)
+  semilla kernel  t [s] frente dist. media      f1 cubierto
+        1   puro  12.06     80      0.0006   0.000 – 0.216
+        1  numba   1.12     80      0.0006   0.000 – 0.216
+          los dos kernels dan la misma población final: sí
+        2  numba   0.66     80      0.0014   0.000 – 0.403
+        3  numba   0.65     80      0.0014   0.000 – 0.412
+
+En ZDT1 la población converge al frente (distancia media ≤ 0.0014) pero solo cubre entre el 22% y el 41% del tramo f1 ∈ [0, 1]: el cruce convexo no extrapola y la mutación del 1 % no recupera los extremos. Para frentes de catálogo, que son discretos y pequeños, el paquete enumera (beam_selector, composite_optimizer) en vez de evolucionar.

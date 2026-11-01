@@ -1,0 +1,17 @@
+Óptimo por enumeración exhaustiva (perfil más ligero que cumple en cada grupo):
+  vigas                7 candidatos,    2 cumplen → IPE450           77.6 kg/m ×   120 m =    9312 kg
+  pilares              5 candidatos,    4 cumplen → HEB240           83.2 kg/m ×    60 m =    4992 kg
+  arriostramientos   714 candidatos,  568 cumplen → HSS5X2-1/2X1/4   16.9 kg/m ×    80 m =    1352 kg
+  Peso mínimo: 15656 kg
+
+GA (población 40, 40 generaciones) con cinco semillas:
+  semilla  peso [kg]  vs óptimo  penal.  asignación
+        1      15680     +0.15%       0  vigas=IPE450, pilares=HEB240, arriostramientos=HSS10X4X1/8
+        2      15680     +0.15%       0  vigas=IPE450, pilares=HEB240, arriostramientos=HSS7X7X1/8
+        3      15757     +0.65%       0  vigas=IPE450, pilares=HEB240, arriostramientos=HSS6X2X1/4
+        4      15656     +0.00%       0  vigas=IPE450, pilares=HEB240, arriostramientos=HSS5X2-1/2X1/4
+        5      15729     +0.46%       0  vigas=IPE450, pilares=HEB240, arriostramientos=HSS6X4X3/16
+
+Semillas que dan el óptimo exacto: 1 de 5; la peor queda a +0.65%.
+Aciertos por grupo: vigas 5/5, pilares 5/5, arriostramientos 1/5 (tamaño del catálogo: IPE 7, HEB 5, HSS 714).
+Para grupos independientes la enumeración es exacta y más barata; el GA solo compensa cuando el coste de un grupo depende de lo que se elige en los demás.

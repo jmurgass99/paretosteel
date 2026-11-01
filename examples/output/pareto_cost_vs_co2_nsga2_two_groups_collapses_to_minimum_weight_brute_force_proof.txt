@@ -1,0 +1,9 @@
+NSGA-II (40 × 30): 1 solución(es) en el frente
+  {'vigas': 'IPE450', 'pilares': 'HEB240'}    14304 kg     17746 USD   23.48 t CO₂  factible=True
+
+Enumeración: 35 combinaciones, 8 factibles, 1 no dominada(s):
+  ('IPE450', 'HEB240')    14304 kg     17746 USD   23.48 t CO₂
+  La combinación más ligera factible es ('IPE450', 'HEB240'); NSGA-II, enumeración y mínimo peso coinciden.
+  La siguiente más ligera ('IPE500', 'HEB240') cuesta +2279 USD y emite +3.46 t CO₂: empeora las dos cosas a la vez.
+
+Para que haya compromiso coste–CO₂ la decisión tiene que incluir la procedencia o la ruta de fabricación de cada grupo (p. ej. EAF más caro pero con menos CO₂); `pareto_lca` no la incluye.

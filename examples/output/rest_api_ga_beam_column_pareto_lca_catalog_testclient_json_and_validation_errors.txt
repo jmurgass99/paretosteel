@@ -1,0 +1,10 @@
+ParetoSteel API 1.1.0 (paquete 1.1.0); health → {'status': 'ok'}
+GET /api/optimizer/catalog?family=HEB → 5 perfiles: HEB200, HEB240, HEB300, HEB360, HEB400
+POST /api/optimizer/ga → {'vigas': 'IPE300', 'pilares': 'HEB200'}, 3742 kg, factible True, 31 valores de historial
+POST /optimize/beam → W16X26, φMn 195.1 kN·m, δ 10.10 mm; igual que la función: sí
+POST /optimize/column → HP8X36, φPn 1474 kN, KL/r 70.7; igual que la función: sí
+POST /api/steel-opt/pareto-lca → 1 solución: {'vigas': 'IPE300'}, 2228 USD, 1.22 t CO₂ (min_Ix en cm⁴ en este endpoint)
+
+L_m = −1 → 422: Input should be greater than 0
+élite = población → 400: elitism debe estar en [0, population_size)
+length_total = 0 → 422: Input should be greater than 0

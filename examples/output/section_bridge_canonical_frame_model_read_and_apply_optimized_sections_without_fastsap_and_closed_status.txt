@@ -1,0 +1,14 @@
+Antes: P1=HEB300, P2=HEB300, P3=HEB300, P4=HEB300, V1=IPE500, V2=IPE500
+Después: P1=HEB200, P2=HEB200, P3=HEB200, P4=HEB200, V1=IPE300, V2=IPE270
+  El modelo original no cambia (inmutable): P1 sigue con HEB300; secciones del modelo nuevo: ['HEB200', 'HEB300', 'IPE270', 'IPE300', 'IPE500']
+  fastsap instalado: no → la validación contra catálogo no se ha hecho (validate_against_catalog=True lanzaría ImportError).
+
+Estado por barra (resolve_status, cerrado por defecto):
+  V1: IPE300  utilización 0.942 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  V2: IPE270  utilización 0.873 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  P1: HEB200  utilización 0.471 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  P2: HEB200  utilización 0.471 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  P3: HEB200  utilización 0.218 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  P4: HEB200  utilización 0.218 → sin evidencias NO_CALCULADO; con el análisis sin ejecutar NO_CALCULADO
+  Solo con las seis evidencias declaradas True una utilización de 0,8 es CALCULADO_CUMPLE.
+Agregado del pórtico: NO_CALCULADO; lista vacía → NO_CALCULADO. Las demandas de este ejemplo son supuestas, no de un análisis: por eso se declara analysis_executed=False y nada sale CALCULADO_CUMPLE.
