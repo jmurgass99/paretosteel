@@ -1,16 +1,19 @@
 """Optimizador de viga de acero - minimiza peso sujeto a capacidades AISC.
 
 Multi-objetivo simplificado: peso minimo + restricciones (M_demand <= phi*Mn,
-deflexion <= L/360). Itera el catalog AISC v16 (SteelProfile en SI) como
-espacio de soluciones discreto. Backward compatible con services existentes.
+deflexion <= L/360, cortante V_Ed <= phi_v*Vn). Itera el catalog AISC v16
+(SteelProfile en SI) como espacio de soluciones discreto. Backward compatible
+con services existentes.
 
 Unidades del catalog (SI): A en m^2, Ix en m^4, weight_per_m en kg/m,
-d/bf en m. Capacidad a flexion se calcula con modulo de seccion elastico
-Sx = Ix / (d/2) y phi = 0.9 (LRFD AISC F2).
+d/bf en m. Por defecto calcula capacidad a flexion con Sx = Ix / (d/2) y
+phi = 0.9; si ``use_plastic_modulus=True`` utiliza Zx (o factor de forma 1.12
+para perfiles doble T). Si ``L_b_m > 0`` reduce por pandeo lateral-torsional.
 """
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -24,13 +27,15 @@ class BeamOptimizationInput:
     Atributos:
         L_m: luz en metros.
         M_Ed_kNm: momento solicitante (kN.m).
-        V_Ed_kN: cortante solicitante (kN). Reservado.
+        V_Ed_kN: cortante solicitante (kN).
         Fy_MPa: tension de fluencia (default 345 = A992 Gr 50).
         E_MPa: modulo elastico (default 200000).
         deflection_limit: divisor de L (default 360 -> L/360).
         w_service_kN_m: carga uniforme de servicio (kN/m) para deflexion.
         section_family: 'W' | 'HSS' | 'M' | 'S' | 'C' | 'HP' | 'IPE' | 'HEB'.
         max_weight_kg_m: filtro maximo de peso.
+        use_plastic_modulus: si True, usa Zx (o 1.12*Sx) para secciones compactas.
+        L_b_m: longitud no arriostrada lateralmente (m); 0.0 = totalmente arriostrada.
     """
     L_m: float
     M_Ed_kNm: float
@@ -41,6 +46,8 @@ class BeamOptimizationInput:
     w_service_kN_m: float = 10.0
     section_family: str = "W"
     max_weight_kg_m: float = 200.0
+    use_plastic_modulus: bool = False
+    L_b_m: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -90,23 +97,26 @@ def _load_family_profiles(family: str) -> list:
     return []
 
 
+def _ltb_reduction_factor_aisc(p, Fy_MPa: float, E_MPa: float, L_b_m: float) -> float:
+    """Factor de reduccion por LTB según AISC 360-22 §F2.2."""
+    if L_b_m <= 0.0:
+        return 1.0
+    Iy = getattr(p, "Iy", 0.0)
+    A = getattr(p, "A", 0.0)
+    if Iy <= 0.0 or A <= 0.0:
+        return 1.0
+    ry = math.sqrt(Iy / A)
+    Lp = 1.76 * ry * math.sqrt(E_MPa / Fy_MPa)
+    Lr = 4.50 * ry * math.sqrt(E_MPa / (0.7 * Fy_MPa))
+    if L_b_m <= Lp:
+        return 1.0
+    if L_b_m <= Lr:
+        return max(0.3, 1.0 - 0.3 * (L_b_m - Lp) / max(Lr - Lp, 1e-6))
+    return max(0.1, 0.7 * (Lr / L_b_m) ** 2)
+
+
 def optimize_beam(inp: BeamOptimizationInput) -> BeamOptimizationResult:
-    """Selecciona el perfil mas liviano del catalog que cumple M y deflexion.
-
-    Estrategia: ordena el catalog filtrado por peso ascendente y devuelve el
-    primero que cumple M_Ed <= phi*Mn (con Mn = Fy * Sx, Sx = Ix/(d/2)) y
-    delta <= L/deflection_limit con carga uniforme w_service_kN_m.
-
-    Args:
-        inp: BeamOptimizationInput validada.
-
-    Returns:
-        BeamOptimizationResult con diagnostico completo. Si nada cumple,
-        ``is_feasible=False`` y ``best_section='<NONE_FEASIBLE>'``.
-
-    Raises:
-        ValueError: entradas invalidas (L_m<=0, M_Ed<0, V_Ed<0, catalog vacio).
-    """
+    """Selecciona el perfil mas liviano del catalog que cumple M, V y deflexion."""
     if inp.L_m <= 0:
         raise ValueError("L_m debe ser positivo")
     if inp.M_Ed_kNm < 0 or inp.V_Ed_kN < 0:
@@ -126,14 +136,8 @@ def optimize_beam(inp: BeamOptimizationInput) -> BeamOptimizationResult:
     n_evaluated = 0
     best: Optional[dict] = None
 
-    # Constantes para conversion
-    # Sx [m^3] = Ix [m^4] / (d/2 [m])
-    # Mn [kN.m] = Fy [MPa = N/mm^2 = kN/m^2 * 1000] * Sx [m^3]
-    #           -> Fy [MPa] * 1000 [kN/m^2 por MPa] * Sx [m^3] = kN.m * 1000
-    # Mejor: Fy_Pa = Fy_MPa * 1e6; Mn_Nm = Fy_Pa * Sx; Mn_kNm = Mn_Nm / 1000
     Fy_Pa = inp.Fy_MPa * 1e6
     E_Pa = inp.E_MPa * 1e6
-    # carga w en N/m
     w_N_m = inp.w_service_kN_m * 1000.0
     L_m = inp.L_m
 
@@ -142,9 +146,26 @@ def optimize_beam(inp: BeamOptimizationInput) -> BeamOptimizationResult:
         if p.d <= 0 or p.Ix <= 0:
             continue
         Sx_m3 = p.Ix / (p.d / 2.0)
-        Mn_kNm = 0.9 * (Fy_Pa * Sx_m3) / 1000.0  # phi*Mn en kN.m
+        if inp.use_plastic_modulus:
+            Zx_m3 = getattr(p, "Zx", None)
+            if not Zx_m3 or Zx_m3 <= 0:
+                Zx_m3 = 1.12 * Sx_m3
+            W_eff_m3 = Zx_m3
+        else:
+            W_eff_m3 = Sx_m3
+
+        chi_lt = _ltb_reduction_factor_aisc(p, inp.Fy_MPa, inp.E_MPa, inp.L_b_m)
+        Mn_kNm = 0.9 * chi_lt * (Fy_Pa * W_eff_m3) / 1000.0  # phi*Mn en kN.m
         if Mn_kNm < inp.M_Ed_kNm:
             continue
+
+        # Verificacion de cortante cuando V_Ed_kN > 0
+        if inp.V_Ed_kN > 0.0:
+            tw_m = getattr(p, "tw", 0.0)
+            Aw_m2 = p.d * tw_m if tw_m > 0 else 0.35 * p.A
+            phi_Vn_kN = 0.9 * 0.6 * (Fy_Pa * Aw_m2) / 1000.0
+            if phi_Vn_kN < inp.V_Ed_kN:
+                continue
 
         # Deflexion uniforme apoyada-apoyada: delta = 5*w*L^4 / (384*E*I)
         delta_m = (5.0 * w_N_m * (L_m ** 4)) / (384.0 * E_Pa * p.Ix)

@@ -15,21 +15,24 @@ class CountryCost:
 
 
 _COSTS: dict[str, CountryCost] = {
-    "CL": CountryCost("Chile",      "AU", 1400, 2200, 2800, 1.85),
+    "CL": CountryCost("Chile",      "CL", 1400, 2200, 2800, 1.85),
     "CO": CountryCost("Colombia",   "CO", 1300, 2100, 2700, 1.80),
     "US": CountryCost("USA",        "US", 1600, 2700, 3500, 1.75),
     "DE": CountryCost("Germany",    "EU", 1700, 2900, 3800, 1.65),
     "ES": CountryCost("Spain",      "ES", 1650, 2850, 3750, 1.80),
     "SG": CountryCost("Singapore",  "SG", 1500, 2500, 3300, 1.90),
     "AU": CountryCost("Australia",  "AU", 1650, 2800, 3700, 1.85),
-    "PE": CountryCost("Peru",       "CO", 1350, 2150, 2750, 1.85),
+    "PE": CountryCost("Peru",       "PE", 1350, 2150, 2750, 1.85),
+    "CN": CountryCost("China",      "CN",  850, 1450, 1950, 2.10),
+    "MX": CountryCost("Mexico",     "MX", 1300, 2100, 2700, 1.80),
 }
 
 
 def get_cost(country_iso: str) -> CountryCost:
-    if country_iso not in _COSTS:
+    iso = country_iso.upper()
+    if iso not in _COSTS:
         raise KeyError(f"pais desconocido: {country_iso}; disponibles: {list(_COSTS)}")
-    return _COSTS[country_iso]
+    return _COSTS[iso]
 
 
 def estimate_cost(country_iso: str, tons: float, stage: str = "erected") -> float:

@@ -18,19 +18,15 @@ Dos objetivos a MINIMIZAR (en conflicto, de ahí el trade-off de Pareto):
        no se mezclan costos por país).
     2. Ratio de esfuerzo a flexión (demanda/capacidad) — utilización.
 
-Verificación de capacidad (SIMPLIFICACIONES declaradas):
-    - Flexión: momento plástico de sección compacta  φ·Mn = φ·Zx·Fy
-      (AISC 360 §F2.1 vía `design_codes.design_beam_compact`), ASUMIENDO
-      arriostramiento lateral adecuado (Lb ≤ Lp). NO es el pandeo lateral-torsional
-      (LTB, §F2.2) completo: `UnifiedSection` no expone rts/J/Cw/Sx. Se puede
-      extender cuando esas propiedades estén disponibles en el catálogo.
+Verificación de capacidad:
+    - Flexión: momento plástico de sección compacta φ·Mn = φ·Zx·Fy si L_b_m == 0;
+      si L_b_m > 0 se evalúa el pandeo lateral-torsional (LTB) reduciendo la
+      capacidad nominal mediante χ_LT (EN 1993-1-1 §6.3.2) con It e Iw deducidos
+      de la geometría de doble T del perfil.
     - Cortante: Vn = 0.6·Fy·Aw con Aw = h·tw (AISC 360 §G2.1, Cv = 1.0), φv = 0.90.
-    - Factibilidad: flexural_ratio ≤ 1.0 Y shear_ratio ≤ 1.0.
-    - Todos los perfiles se comparan con el MISMO código (LRFD por defecto) para que
-      la optimización use una base homogénea.
-
-Selección final: de la frontera de Pareto factible (rango 0) se toma el perfil de
-MENOR peso (el diseño económico óptimo que cumple).
+    - Deflexión ELS opcional: si L_span_m > 0 y w_service_kN_m > 0, verifica
+      δ = 5·w·L⁴ / (384·E·Ix) ≤ L / deflection_limit.
+    - Factibilidad: flexural_ratio ≤ 1.0, shear_ratio ≤ 1.0 y (si aplica) deflection_ratio ≤ 1.0.
 """
 from __future__ import annotations
 
@@ -40,7 +36,13 @@ from typing import List, Optional, Sequence
 import numpy as np
 
 from .catalog_unified import UnifiedSection, all_sections
-from .design_codes import SteelBeamInput, design_beam_compact
+from .design_codes import (
+    LtbEc3Input,
+    SteelBeamInput,
+    design_beam_compact,
+    get_ec3_ltb_curve,
+    lateral_torsional_buckling_ec3,
+)
 from .nsga2_jit import non_dominated_sort_jit
 
 # Densidad del acero estructural (kg/m³) para derivar peso lineal desde el área.
@@ -56,6 +58,10 @@ class BeamDemand:
     V_kN: float = 0.0
     Fy_MPa: float = 345.0   # ASTM A992 / grado común
     code: str = "US"        # base de diseño homogénea (LRFD)
+    L_b_m: float = 0.0      # longitud no arriostrada lateralmente (m); 0 = compacta arriostrada
+    L_span_m: float = 0.0   # luz para verificación de flecha ELS (m)
+    w_service_kN_m: float = 0.0  # carga uniforme de servicio para flecha (kN/m)
+    deflection_limit: float = 360.0  # límite L / deflection_limit
 
 
 @dataclass(frozen=True)
@@ -65,11 +71,14 @@ class BeamCandidate:
     profile_type: str          # "steel_ipe" | "steel_w_shape"
     standard: str              # "ASTM" | "EN"
     weight_kg_m: float
-    Mn_design_kNm: float       # capacidad de diseño a flexión (φMn)
+    Mn_design_kNm: float       # capacidad de diseño a flexión (φMn o χ_LT·φMn)
     Vn_design_kN: float        # capacidad de diseño a cortante (φVn)
     flexural_ratio: float      # M_demanda / φMn
     shear_ratio: float         # V_demanda / φVn
     feasible: bool
+    deflection_mm: float = 0.0
+    deflection_ratio: float = 0.0
+    chi_LT: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -87,17 +96,45 @@ def _profile_type(sec: UnifiedSection) -> str:
     return "steel_ipe" if sec.name.upper().startswith("IPE") else "steel_w_shape"
 
 
+def _estimate_it_iw_mm(sec: UnifiedSection) -> tuple[float, float]:
+    """Estima It (mm⁴) e Iw (mm⁶) para sección doble T simétrica."""
+    h_w = max(sec.h_mm - 2.0 * sec.tf_mm, 0.0)
+    it_mm4 = (2.0 * sec.bf_mm * (sec.tf_mm ** 3) + h_w * (sec.tw_mm ** 3)) / 3.0
+    iz_mm4 = sec.Iy_cm4 * 1.0e4
+    h0 = max(sec.h_mm - sec.tf_mm, 1.0)
+    iw_mm6 = iz_mm4 * (h0 ** 2) / 4.0
+    return max(it_mm4, 1.0), max(iw_mm6, 1.0)
+
+
 def _evaluate(sec: UnifiedSection, demand: BeamDemand) -> BeamCandidate:
     """Calcula peso y ratios de utilización de un perfil frente a la demanda."""
     # Peso lineal: A[cm²] -> A[m²] (×1e-4) × densidad.
     weight = sec.A_cm2 * 1.0e-4 * _STEEL_DENSITY_KG_M3
 
-    # Flexión: φMn = φ·Zx·Fy  (Zx[cm³] -> mm³ ×1e3).
+    # Flexión base compacta: φMn = φ·Zx·Fy  (Zx[cm³] -> mm³ ×1e3).
     flex = design_beam_compact(
         SteelBeamInput(plastic_modulus_mm3=sec.Zx_cm3 * 1.0e3,
                        Fy_MPa=demand.Fy_MPa, code=demand.code)
     )
     Mn_d = flex.M_design_kNm
+    chi_lt = 1.0
+    if demand.L_b_m > 0.0:
+        it_mm4, iw_mm6 = _estimate_it_iw_mm(sec)
+        _, alpha_lt = get_ec3_ltb_curve(sec.h_mm, sec.bf_mm, is_welded=False)
+        ltb_res = lateral_torsional_buckling_ec3(
+            LtbEc3Input(
+                L_unrestrained_mm=demand.L_b_m * 1000.0,
+                Iz_mm4=sec.Iy_cm4 * 1.0e4,
+                Iw_mm6=iw_mm6,
+                It_mm4=it_mm4,
+                Wpl_y_mm3=sec.Zx_cm3 * 1.0e3,
+                fy_MPa=demand.Fy_MPa,
+                alpha_LT=alpha_lt,
+            )
+        )
+        chi_lt = ltb_res.chi_LT
+        Mn_d = Mn_d * chi_lt
+
     flexural_ratio = demand.M_kNm / Mn_d if Mn_d > 0 else float("inf")
 
     # Cortante: Vn = 0.6·Fy·Aw,  Aw = h·tw (mm²);  N -> kN (÷1e3).
@@ -105,7 +142,21 @@ def _evaluate(sec: UnifiedSection, demand: BeamDemand) -> BeamCandidate:
     Vn_d = _PHI_SHEAR * 0.6 * demand.Fy_MPa * Aw_mm2 / 1.0e3
     shear_ratio = demand.V_kN / Vn_d if Vn_d > 0 else float("inf")
 
-    feasible = flexural_ratio <= 1.0 and shear_ratio <= 1.0
+    # Deflexión ELS opcional
+    defl_mm = 0.0
+    defl_ratio = 0.0
+    defl_ok = True
+    if demand.L_span_m > 0.0 and demand.w_service_kN_m > 0.0:
+        E_Pa = 200000.0 * 1.0e6
+        Ix_m4 = sec.Ix_cm4 * 1.0e-8
+        w_N_m = demand.w_service_kN_m * 1000.0
+        defl_m = (5.0 * w_N_m * (demand.L_span_m ** 4)) / (384.0 * E_Pa * Ix_m4)
+        defl_mm = defl_m * 1000.0
+        lim_mm = (demand.L_span_m * 1000.0) / max(demand.deflection_limit, 1.0)
+        defl_ratio = defl_mm / lim_mm if lim_mm > 0 else float("inf")
+        defl_ok = defl_ratio <= 1.0
+
+    feasible = flexural_ratio <= 1.0 and shear_ratio <= 1.0 and defl_ok
     return BeamCandidate(
         name=sec.name,
         profile_type=_profile_type(sec),
@@ -116,6 +167,9 @@ def _evaluate(sec: UnifiedSection, demand: BeamDemand) -> BeamCandidate:
         flexural_ratio=flexural_ratio,
         shear_ratio=shear_ratio,
         feasible=feasible,
+        deflection_mm=defl_mm,
+        deflection_ratio=defl_ratio,
+        chi_LT=chi_lt,
     )
 
 
@@ -124,18 +178,7 @@ def optimize_beam(
     sections: Optional[Sequence[UnifiedSection]] = None,
     standard: Optional[str] = None,
 ) -> BeamOptimizationResult:
-    """Selecciona el perfil óptimo (mínimo peso factible) por Pareto NSGA-II JIT.
-
-    Args:
-        demand: solicitaciones M, V (+ Fy, code opcionales).
-        sections: catálogo a considerar; por defecto `catalog_unified.all_sections()`.
-        standard: filtra por norma ("ASTM" o "EN"); None = ambas.
-
-    Returns:
-        BeamOptimizationResult con el perfil seleccionado, la frontera de Pareto
-        factible y todos los candidatos evaluados. `selected` es None si ningún
-        perfil del catálogo resiste la demanda.
-    """
+    """Selecciona el perfil óptimo (mínimo peso factible) por Pareto NSGA-II JIT."""
     if sections is None:
         sections = all_sections()
     if standard is not None:
