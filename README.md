@@ -395,7 +395,7 @@ L = 9.0 m, P_u = 1500.0 kN
   HP      HP14X73           108.6  101.5   191.8  162.5  2018.8  2018.8 inelástico
   HSS     HSS16.000X0.250    62.6   63.4   490.8  257.1  1716.5  1716.5 inelástico
   Más ligero: HSS16.000X0.250 (HSS, 62.6 kg/m); el W elegido pesa +71% respecto a él.
-  HSS16.000X0.250: D/t = 68.8 frente a λr = 63.8 → pared ESBELTA: §E7 reduciría φPn y el servicio no lo comprueba
+  HSS16.000X0.250: D/t = 68.8 frente a λr = 63.8 (límite D/t sin contrastar) → pared ESBELTA: §E7 reduciría φPn y el servicio no lo comprueba
 
 A 9 m todas las familias necesitan un perfil más pesado que a 4 m. El HSS tiene el mismo radio de giro en los dos ejes y por eso gana en compresión centrada, pero los HSS elegidos por peso son de pared esbelta: sin la comprobación de §E7 esa ventaja no está demostrada.
 ```
@@ -707,7 +707,7 @@ V invertida, Ry por defecto 1,10: L = 4610 mm, θ = 49.4°, KL/r = 79.5
 
 ```text
 Angular L4X4X1/2, 3 tornillos: U = 1 − 30.0/150 = 0.800 (caso 2); An = 2115 mm², Ae = 1692 mm² (0.699·Ag)
-  Con el caso 8 (U = 0,60) Ae sería 1269 mm²: el caso 2 da más; AISC permite usar el mayor de los dos.
+  Con el caso 8 (U = 0,60, sin contrastar) Ae sería 1269 mm²: el caso 2 da más.
   W10X33: bf/d = 0.818 ≥ 2/3 → U = 0.90 (caso 7)
   W12X26: bf/d = 0.532 < 2/3 → U = 0.85 (caso 7)
 
@@ -869,6 +869,8 @@ Agregado del pórtico: NO_CALCULADO; lista vacía → NO_CALCULADO. Las demandas
 - `price_sensitivity_v2` usa normales independientes sin truncar; `surrogate` es un Kriging de media nula y longitud fija que tiende a 0 fuera de los datos; `reuse` empareja de forma voraz una capacidad escalar; `optimizer.SteelSectionOptimizer` es una heurística con cifras fijas. Validar secciones contra catálogo en `section_bridge` necesita `fastsap`, que no es dependencia pública.
 
 ## Normas y referencias
+
+Contrastado en esta revisión con fuentes secundarias (AISC Engineering Journal y Modern Steel Construction, documentación de programas de cálculo, fichas de perfiles): φv = 1,00 de AISC 360 §G2.1(a), el umbral del 20 % de §H3.2, el límite 1,40·√(E/Fy) de la Tabla B4.1a con t = 0,93·t_nominal, Ry = 1,3 del A500 grado C, el Ecm de EN 1992-1-1, la curva c de la Tabla 6.2 de EN 1993-1-1 para I soldadas en z–z y las propiedades de los W corregidos. El resto de números de cláusula procede del código del paquete y queda sin contrastar.
 
 - AISC 360-16, *Specification for Structural Steel Buildings*: §D2 y Tabla D3.1, §E3, §F2.1, §G2.1, §H1.1, §H3 (constante C, φTn y ecuación H3-6, que mantiene la edición de 2022), Apéndice 8 (B1) y cap. I (vigas mixtas: anchura eficaz, Ec = 0,043·wc^1,5·√f'c, pernos, momento plástico).
 - AISC 341-16, *Seismic Provisions for Structural Steel Buildings*: §F2.3 (resistencias esperadas y 0,3 de la diagonal pandeada), §F2.5b (KL/r ≤ 200) y Tabla A3.1 (Ry = 1,3 para A500 grado C, según el AISC Engineering Journal).

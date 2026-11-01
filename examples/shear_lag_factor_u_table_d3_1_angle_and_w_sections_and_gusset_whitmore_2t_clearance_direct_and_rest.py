@@ -2,8 +2,9 @@
 
 1. `calc_shear_lag_factor_U`:
    · caso 2: angular L4X4X1/2 atornillado por un ala con 3 tornillos a 75 mm (l = 150 mm), x̄ = 1,18 in;
-     U = 1 − x̄/l. La Tabla D3.1 también admite, para angulares, el caso 8 (U = 0,60 con 3 tornillos
-     por línea), que el módulo no implementa.
+     U = 1 − x̄/l. La Tabla D3.1 también tiene, para angulares, el caso 8 (U = 0,60 con 3 tornillos
+     por línea; valor y regla de «el mayor de los dos» sin contrastar en esta revisión), que el módulo no
+     implementa.
    · caso 7: W unidos por las alas con ≥ 3 tornillos por línea: U = 0,90 si bf ≥ 2/3·d, 0,85 si no
      (W10X33 y W12X26, d y bf de la base AISC v16).
 2. `check_gusset_plate` para la diagonal HSS6X6X3/8 con P_u = 700 kN: chapa de 16 mm, Fy = 345 MPa,
@@ -29,8 +30,8 @@ def main() -> None:
     Ae, r = calc_net_effective_area(Ag, An, U)
     print(f"Angular L4X4X1/2, 3 tornillos: U = 1 − {xbar:.1f}/{l:.0f} = {U:.3f} (caso 2); "
           f"An = {An:.0f} mm², Ae = {Ae:.0f} mm² ({r:.3f}·Ag)")
-    print(f"  Con el caso 8 (U = 0,60) Ae sería {An * 0.60:.0f} mm²: {'el caso 2 da más' if U > 0.60 else 'el caso 8 da más'}; "
-          "AISC permite usar el mayor de los dos.")
+    print(f"  Con el caso 8 (U = 0,60, sin contrastar) Ae sería {An * 0.60:.0f} mm²: "
+          f"{'el caso 2 da más' if U > 0.60 else 'el caso 8 da más'}.")
     for name in ("W10X33", "W12X26"):
         p = AISC_W_FULL[name]
         U7 = calc_shear_lag_factor_U(case=7, bf_mm=p.bf * 1000, d_mm=p.d * 1000)

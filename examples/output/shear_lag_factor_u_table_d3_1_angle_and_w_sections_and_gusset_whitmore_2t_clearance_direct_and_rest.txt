@@ -1,5 +1,5 @@
 Angular L4X4X1/2, 3 tornillos: U = 1 − 30.0/150 = 0.800 (caso 2); An = 2115 mm², Ae = 1692 mm² (0.699·Ag)
-  Con el caso 8 (U = 0,60) Ae sería 1269 mm²: el caso 2 da más; AISC permite usar el mayor de los dos.
+  Con el caso 8 (U = 0,60, sin contrastar) Ae sería 1269 mm²: el caso 2 da más.
   W10X33: bf/d = 0.818 ≥ 2/3 → U = 0.90 (caso 7)
   W12X26: bf/d = 0.532 < 2/3 → U = 0.85 (caso 7)
 

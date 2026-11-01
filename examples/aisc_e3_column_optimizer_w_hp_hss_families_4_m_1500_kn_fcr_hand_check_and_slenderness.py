@@ -9,7 +9,8 @@ soluciones y repite con 9 m para ver el cambio de rama inelástica a elástica.
 
 No comprueba pandeo local (secciones esbeltas, §E7) ni pandeo por torsión o flexotorsión (§E4). El
 ejemplo calcula la esbeltez de pared de los HSS elegidos (t_diseño = 0,93·t_nominal) y la compara con
-los límites de la Tabla B4.1a: b/t ≤ 1,40·√(E/Fy) en HSS rectangulares y D/t ≤ 0,11·E/Fy en circulares.
+los límites de la Tabla B4.1a: b/t ≤ 1,40·√(E/Fy) en HSS rectangulares (con b = lado − 3t, §B4.1b) y
+D/t ≤ 0,11·E/Fy en circulares (este último, sin contrastar en esta revisión).
 
 Ejecutar:  python examples/aisc_e3_column_optimizer_w_hp_hss_families_4_m_1500_kn_fcr_hand_check_and_slenderness.py
 """
@@ -68,7 +69,8 @@ def main() -> None:
             lam, lam_r, kind = hss_wall_slenderness(hss)
             verdict = ("pared ESBELTA: §E7 reduciría φPn y el servicio no lo comprueba" if lam > lam_r
                        else "pared no esbelta")
-            print(f"  {hss}: {kind} = {lam:.1f} frente a λr = {lam_r:.1f} → {verdict}")
+            note = " (límite D/t sin contrastar)" if kind == "D/t" else ""
+            print(f"  {hss}: {kind} = {lam:.1f} frente a λr = {lam_r:.1f}{note} → {verdict}")
             slender = slender or lam > lam_r
         totals[L] = {s[1]: s[0] for s in sols}
     heavier = all(totals[9.0][f] > totals[4.0][f] for f in totals[4.0])

@@ -8,8 +8,9 @@
     montante, no aplica un coeficiente único).
 Para tres vigas madre (IPE300, W14X30, HEB300) el ejemplo compara ese Z con el módulo plástico de la
 sección neta en el centro del hueco (dos T, con hueco de altura h_o = d_b para una expansión del 50 %:
-d_g = d_b + h_o/2), calculado a mano, y señala la nota de «T delgada»: el código toma la altura de la T
-como (d_g − 0,5·d_b)/2 = 0,5·d_b, mientras que con h_o = d_b la T mide (d_g − h_o)/2 = 0,25·d_b.
+d_g = d_b + h_o/2; geometría del corte en zigzag tomada por razonamiento geométrico y sin contrastar con
+una guía), calculado a mano, y señala la nota de «T delgada»: el código toma la altura de la T como
+(d_g − 0,5·d_b)/2 = 0,5·d_b, mientras que con h_o = d_b la T mide (d_g − h_o)/2 = 0,25·d_b.
 Ningún resultado de este módulo sirve para dimensionar.
 
 Ejecutar:  python examples/castellated_beam_experimental_depth_1_5_db_flange_only_plastic_modulus_and_fixed_0_85_vierendeel_factor.py
