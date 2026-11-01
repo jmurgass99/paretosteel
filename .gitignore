@@ -60,8 +60,6 @@ Documentos de referencia */
 *.sqlite3
 
 # herramientas locales de agentes
-.claude-flow/
-.claude/
 
 # salidas de ficheros de los ejemplos (JSON, memorias)
 examples/out/

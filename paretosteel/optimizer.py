@@ -5,7 +5,7 @@ from typing import List, Dict
 
 class SteelSectionOptimizer:
     """
-    AI Copilot logic applied to structural member optimization.
+    Optimization logic applied to structural member optimization.
     Inspired by advanced frame optimization algorithms (OSAFE).
     """
     def __init__(self, catalog: List[dict] = None):
@@ -37,7 +37,7 @@ class SteelSectionOptimizer:
         
         if fail_mode == "LTB":
             if L_b > L / 2.0:
-                # Copilot Suggestion: Don't increase the section, just add lateral bracing
+                # Suggestion: Don't increase the section, just add lateral bracing
                 suggestion = f"La viga {current_section} falla por Pandeo Lateral Torsional (LTB). El radio de giro i_z es bajo frente a L_b={L_b}m. Sugerencia: Añadir arriostramiento lateral a L/2. Esto evita sobredimensionar la sección."
                 action = "ADD_BRACING"
             else:
@@ -58,7 +58,9 @@ class SteelSectionOptimizer:
             "current_section": current_section,
             "utilization": util_ratio,
             "failure_mode": fail_mode,
-            "copilot_action": action,
-            "copilot_suggestion": suggestion,
+            "action": action,
+            "recommended_action": action,
+            "suggestion": suggestion,
+            "recommendation": suggestion,
             "estimated_weight_savings_pct": round(saved_weight_pct, 2)
         }

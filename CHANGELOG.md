@@ -15,7 +15,7 @@
 - Misma función, rama EC4: la inercia homogeneizada era Ia + (Ac/n)·d², sin desplazar el eje neutro (como si el acero tuviera área infinita): IPE270, b_eff 2 m, hc 70 mm: I_tr 551 → 215·10⁶ mm⁴ y flecha de uso 4,74 → 12,14 mm. En el forjado de ejemplo la viga EC4 pasa a estar gobernada por la flecha total (DCR 0,751).
 - `pyproject.toml`: la base AISC v16 (`paretosteel/data/aisc_v16.csv`) no entraba en la rueda; con `pip install git+...` no editable el catálogo AISC (W_FULL, HSS_FULL…) quedaba vacío y solo se registraba un aviso. Añadido `[tool.setuptools.package-data]` y comprobado construyendo la rueda.
 - Versión única 1.1.0 en `pyproject.toml`, `paretosteel.__version__` y la API (`FastAPI(version=__version__)`; antes 1.0.0 fijo en el código). La insignia del README decía Python 3.10+ y el paquete exige 3.11.
-- Descripciones: el paquete se presentaba como «AI Copilot»; el GA decía penalizar «DCR > 1» (penaliza déficit de Ix y A); `aisc_e3_critical_stress` afirmaba que las dos ramas de §E3 «coinciden idénticamente» (difieren un 0,04 %: 0,658^2,25 = 0,38995 frente a 0,877/2,25 = 0,38978).
+- Descripciones: el paquete se presentaba como «optimizador heurístico»; el GA decía penalizar «DCR > 1» (penaliza déficit de Ix y A); `aisc_e3_critical_stress` afirmaba que las dos ramas de §E3 «coinciden idénticamente» (difieren un 0,04 %: 0,658^2,25 = 0,38995 frente a 0,877/2,25 = 0,38978).
 - `tests/test_beam_selector.py`: el oráculo de φMn del W12X26 usaba el Zx mal transcrito (615); ahora 610 cm³.
 
 ### Añadido
