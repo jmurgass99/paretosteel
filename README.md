@@ -1,5 +1,7 @@
 # paretosteel — selección y optimización de perfiles de acero sobre catálogos comerciales en Python
 
+**Español** · [English](README.en.md) · [Português](README.pt.md) · [Italiano](README.it.md)
+
 Selección del perfil más ligero que cumple sobre la base AISC v16 (2299 perfiles) y un catálogo unificado W + IPE/HEA/HEB, por enumeración con clasificación no dominada, algoritmo genético por grupos de barras, NSGA-II con kernels Numba o evolución diferencial de SciPy; comprobaciones simplificadas de AISC 360 y EN 1993-1-1 (flexión compacta, compresión §E3, interacción H1, pandeo lateral-torsional, torsión en tubos), arriostramientos con diseño por capacidad de AISC 341, vigas mixtas AISC 360 y EN 1994-1-1, mediciones con coste y CO₂ por país, sensibilidad al precio, reutilización de perfiles y una API REST. Dependencias: `numpy`, `scipy`, `numba`, `pydantic`.
 
 [![CI](https://github.com/jmurgass99/paretosteel/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/paretosteel/actions/workflows/ci.yml)
