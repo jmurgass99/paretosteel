@@ -20,7 +20,7 @@ En el predimensionado de una estructura metálica casi todas las decisiones son 
 
 **No lo uses para**
 
-- el cálculo de proyecto: no hay análisis estructural, las demandas las pone quien llama y los selectores no comprueban pandeo lateral, pandeo local de secciones esbeltas (§E7) ni flexotorsión;
+- el cálculo de proyecto: no hay análisis estructural, las demandas las pone quien llama, el pandeo lateral de los selectores es aproximado y solo entra si se da `L_b_m`, y no comprueban pandeo local de secciones esbeltas (§E7) ni flexotorsión;
 - obtener un compromiso coste–CO₂: `pareto_lca` y `pareto_weight_cost` siempre devuelven un único punto (ver los ejemplos);
 - vigas alveolares: el módulo `castellated` es experimental y usa un factor fijo de 0,85;
 - AS 4100: la rama «AU» de `design_codes` es la curva de AISC;
@@ -32,7 +32,7 @@ En el predimensionado de una estructura metálica casi todas las decisiones son 
 pip install git+https://github.com/jmurgass99/paretosteel.git
 ```
 
-Extras: `api` (FastAPI, uvicorn, httpx), `memos` (handcalcs; sin él la memoria sale con un LaTeX manual equivalente), `test`; `perf` es nominal porque numba ya es obligatoria. Para desarrollo: `git clone`, `pip install -e ".[test,api]"`, `pytest -q` (40 ficheros de tests; `tests/test_examples.py` ejecuta los 33 ejemplos como subprocesos). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`. Los ejemplos que escriben ficheros (memorias) lo hacen en `examples/out/`, que no se versiona; su salida de consola está en `examples/output/`.
+Extras: `api` (FastAPI, uvicorn, httpx), `memos` (handcalcs; sin él la memoria sale con un LaTeX manual equivalente), `test`; `perf` es nominal porque numba ya es obligatoria. Para desarrollo: `git clone`, `pip install -e ".[test,api]"`, `pytest -q` (42 ficheros de tests; `tests/test_examples.py` ejecuta los 33 ejemplos como subprocesos). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`. Los ejemplos que escriben ficheros (memorias) lo hacen en `examples/out/`, que no se versiona; su salida de consola está en `examples/output/`.
 
 ## Capacidades
 
@@ -196,6 +196,8 @@ Estructura de 25 t: coste según las dos tablas del paquete [USD]
   SG      37500      62500     82500 |     32500           -13%  (sin fila: DEFAULT)
   AU      41250      70000     92500 |     32500           -21%  (sin fila: DEFAULT)
   PE      33750      53750     68750 |     33750            +0%
+  CN      21250      36250     48750 |     21250            +0%
+  MX      32500      52500     67500 |     32500            +0%
   La mayor discrepancia entre «cost_lca» y el precio bruto de «cost_by_country» es DE (-38%). Un mismo proyecto da cifras distintas según el módulo que se use.
 
 CO₂ incorporado de 25 t por ruta de fabricación (cost_lca) y por país (cost_by_country):
@@ -203,7 +205,7 @@ CO₂ incorporado de 25 t por ruta de fabricación (cost_lca) y por país (cost_
   secondary_EAF   0.60 t CO₂/t →  15.0 t CO₂
   average_global  1.85 t CO₂/t →  46.2 t CO₂
   primary_BF      2.20 t CO₂/t →  55.0 t CO₂
-  Por país el factor va de 1.65 a 1.90 (×1.15); por ruta, de 0.40 a 2.20 (×5.5). La ruta de fabricación mueve el CO₂ más que el país de compra.
+  Por país el factor va de 1.65 a 2.10 (×1.27); por ruta, de 0.40 a 2.20 (×5.5). La ruta de fabricación mueve el CO₂ más que el país de compra.
 ```
 
 </details>
@@ -247,11 +249,11 @@ Schaffer N.1 (población 40, 60 generaciones)
 
 ZDT1, 4 variables (población 80, 300 generaciones)
   semilla kernel  t [s] frente dist. media      f1 cubierto
-        1   puro  12.06     80      0.0006   0.000 – 0.216
-        1  numba   1.12     80      0.0006   0.000 – 0.216
+        1   puro   4.56     80      0.0006   0.000 – 0.216
+        1  numba   0.50     80      0.0006   0.000 – 0.216
           los dos kernels dan la misma población final: sí
-        2  numba   0.66     80      0.0014   0.000 – 0.403
-        3  numba   0.65     80      0.0014   0.000 – 0.412
+        2  numba   0.31     80      0.0014   0.000 – 0.403
+        3  numba   0.30     80      0.0014   0.000 – 0.412
 
 En ZDT1 la población converge al frente (distancia media ≤ 0.0014) pero solo cubre entre el 22% y el 41% del tramo f1 ∈ [0, 1]: el cruce convexo no extrapola y la mutación del 1 % no recupera los extremos. Para frentes de catálogo, que son discretos y pequeños, el paquete enumera (beam_selector, composite_optimizer) en vez de evolucionar.
 ```
@@ -264,12 +266,12 @@ En ZDT1 la población converge al frente (distancia media ≤ 0.0014) pero solo 
 
 ```text
       N  M frentes  |F0|  puro [ms]  fast [ms]  jit [ms]  iguales
-    200  2      22     7       48.0       0.70      0.56       sí
-    400  2      38     4      219.5       3.81      2.35       sí
-    400  3      13    22      227.5       2.83      3.49       sí
-    800  3      20    26     1180.6      20.69     12.29       sí
+    200  2      22     7       16.7       0.41      0.31       sí
+    400  2      38     4       83.6       1.33      1.13       sí
+    400  3      13    22       81.9       1.43      1.55       sí
+    800  3      20    26      335.5       5.72      5.88       sí
 
-Rangos idénticos en las tres implementaciones: sí; el kernel `fast` es entre 57 y 80 veces más rápido que el puro.
+Rangos idénticos en las tres implementaciones: sí; el kernel `fast` es entre 41 y 63 veces más rápido que el puro.
 Distancia de apiñamiento de un frente de cuatro puntos: [1000000000.0, 1.25, 1.25, 1000000000.0] (a mano: extremos 1e9, interiores 1,25 y 1,25); el punto (4,4) tiene rango 1.
 ```
 
@@ -369,7 +371,9 @@ A mano para W18X35: Sx = Ix/(d/2) = 2.1228e-04/0.2248 = 944 cm³; φMn = 0,9·34
   Los 38 W más ligeros fallan por: flexión 1, flecha 0, las dos 37
 
 Sin flecha relevante el perfil sería el mismo (W18X35): gobierna la flexión.
-Con V_Ed = 5000 kN y sin w_service: W18X35 — el cortante no se comprueba y la flecha se evalúa con la carga por defecto de 10 kN/m (δ = 7.36 mm). Pasa siempre esos datos.
+Con V_Ed = 150 kN: W18X35 — el mismo perfil: el cortante no gobierna.
+Con V_Ed = 5000 kN: <NONE_FEASIBLE> — ningún W de la base resiste ese cortante (φVn = 0,9·0,6·Fy·d·tw).
+Sin w_service: W18X35 — la flecha se evalúa con la carga por defecto de 10 kN/m (δ = 7.36 mm), no con la carga de servicio real.
 ```
 
 </details>
@@ -860,7 +864,7 @@ Agregado del pórtico: NO_CALCULADO; lista vacía → NO_CALCULADO. Las demandas
 
 ## Limitaciones
 
-- No hay análisis estructural: las solicitaciones son datos. Los selectores (`beam_selector`, `services`, `diff_evolution`) no comprueban pandeo lateral, pandeo local de secciones esbeltas (§E7) ni flexotorsión; el HSS más ligero que eligen a compresión suele ser de pared esbelta. `beam_selector` no mira la flecha y usa φv = 0,90 siempre (AISC permite 1,00 en almas de laminados compactas). `services.optimize_beam` usa Sx elástico, no comprueba `V_Ed_kN` y, si no se pasa la carga de servicio, evalúa la flecha con 10 kN/m. La viga de `diff_evolution` aproxima el alma por A/2 y usa la misma carga para resistencia y flecha.
+- No hay análisis estructural: las solicitaciones son datos. Los selectores (`beam_selector`, `services`, `diff_evolution`) no comprueban pandeo local de secciones esbeltas (§E7) ni flexotorsión; el HSS más ligero que eligen a compresión suele ser de pared esbelta. El pandeo lateral solo entra si se da `L_b_m`: `beam_selector` aplica el χ_LT de EN 1993-1-1 §6.3.2 (It e Iw estimados de la geometría) sobre el φ·Zx·Fy de AISC, una mezcla de normas; `services.optimize_beam` usa una reducción lineal propia entre Lp y Lr que no es la de AISC 360 §F2.2; `diff_evolution` no lo comprueba. `beam_selector` comprueba la flecha solo si se dan `L_span_m` y `w_service_kN_m`, y usa φv = 0,90 siempre (AISC permite 1,00 en almas de laminados compactas). `services.optimize_beam` usa Sx elástico salvo con `use_plastic_modulus=True`, comprueba `V_Ed_kN` con 0,9·0,6·Fy·d·tw y, si no se pasa la carga de servicio, evalúa la flecha con 10 kN/m. La viga de `diff_evolution` aproxima el alma por A/2 y usa la misma carga para resistencia y flecha.
 - Los optimizadores evolutivos no garantizan el óptimo de catálogo: la evolución diferencial dio W21X44 donde la enumeración da W18X40 (+10 %); el GA en HSS quedó hasta un 0,65 % por encima. `nsga2_run` (padres al azar, cruce convexo, mutación del 1 %) cubre solo una parte del frente de ZDT1.
 - `pareto_lca` y `pareto_weight_cost` no tienen compromiso que explorar: coste y CO₂ son masa × factores fijos y el frente es un punto. Las tablas de `cost_by_country` y `cost_lca` son ilustrativas y no coinciden (Alemania −38 % entre una y otra); `CountryCost.code` es incoherente (Chile «AU»). `pareto_lca` pide min_Ix en cm⁴ y `genetic`, en m⁴.
 - `design_codes`: «EU» usa siempre la curva c y «AU» es la curva de AISC, no AS 4100; `aisc_beam_column_interaction` (experimental) completa Ix, Iy y longitudes con valores por defecto si no se pasan. `ec3_2022_2g`: curva por defecto a0 (la más favorable), suma lineal M + N en lugar de §6.3.3, clase 4 aproximada y numeración de cláusulas de la edición 2022 sin contrastar. `aisc360_22_hss`: φTn solo para tubos rectangulares y H3-6 sin el umbral del 20 % de Tc.

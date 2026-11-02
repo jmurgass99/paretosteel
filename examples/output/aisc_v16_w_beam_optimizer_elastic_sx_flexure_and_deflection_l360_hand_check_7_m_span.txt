@@ -6,4 +6,6 @@ A mano para W18X35: Sx = Ix/(d/2) = 2.1228e-04/0.2248 = 944 cm³; φMn = 0,9·34
   Los 38 W más ligeros fallan por: flexión 1, flecha 0, las dos 37
 
 Sin flecha relevante el perfil sería el mismo (W18X35): gobierna la flexión.
-Con V_Ed = 5000 kN y sin w_service: W18X35 — el cortante no se comprueba y la flecha se evalúa con la carga por defecto de 10 kN/m (δ = 7.36 mm). Pasa siempre esos datos.
+Con V_Ed = 150 kN: W18X35 — el mismo perfil: el cortante no gobierna.
+Con V_Ed = 5000 kN: <NONE_FEASIBLE> — ningún W de la base resiste ese cortante (φVn = 0,9·0,6·Fy·d·tw).
+Sin w_service: W18X35 — la flecha se evalúa con la carga por defecto de 10 kN/m (δ = 7.36 mm), no con la carga de servicio real.

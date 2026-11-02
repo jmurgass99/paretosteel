@@ -2,11 +2,13 @@
 
 Viga biapoyada de 7 m con M_Ed = 250 kN·m y una carga de servicio de 18 kN/m. `services.optimize_beam`
 ordena la familia por peso y devuelve el primer perfil con
-  φ·Fy·Sx ≥ M_Ed      (Sx = Ix/(d/2), φ = 0,9; momento ELÁSTICO, sin Zx ni pandeo lateral)
-  5·w·L⁴/(384·E·Ix) ≤ L/360.
+  φ·Fy·Sx ≥ M_Ed      (Sx = Ix/(d/2), φ = 0,9; momento ELÁSTICO por defecto: `use_plastic_modulus`
+                        usa Zx y `L_b_m > 0` reduce por pandeo lateral)
+  5·w·L⁴/(384·E·Ix) ≤ L/360
+  0,9·0,6·Fy·d·tw ≥ V_Ed   (si se da V_Ed).
 El ejemplo recalcula a mano el elegido y el anterior en peso, muestra cuándo pasa a gobernar la
-flecha y deja a la vista dos rasgos del servicio: V_Ed se acepta pero no se comprueba, y si no se da
-`w_service_kN_m` la flecha se evalúa con 10 kN/m por defecto.
+flecha, comprueba el cortante con un V_Ed realista y uno imposible, y deja a la vista que si no se
+da `w_service_kN_m` la flecha se evalúa con 10 kN/m por defecto.
 
 Ejecutar:  python examples/aisc_v16_w_beam_optimizer_elastic_sx_flexure_and_deflection_l360_hand_check_7_m_span.py
 """
@@ -46,9 +48,15 @@ def main() -> None:
     print(f"\nSin flecha relevante (w = 0,001 kN/m) bastaría {only_m.best_section} ({only_m.weight_kg_m:.1f} kg/m): "
           f"la flecha encarece {res.weight_kg_m / only_m.weight_kg_m - 1:+.0%}." if only_m.best_section != res.best_section
           else f"\nSin flecha relevante el perfil sería el mismo ({only_m.best_section}): gobierna la flexión.")
-    dflt = optimize_beam(BeamOptimizationInput(L_m=L, M_Ed_kNm=M, V_Ed_kN=5000.0, section_family="W"))
-    print(f"Con V_Ed = 5000 kN y sin w_service: {dflt.best_section} — el cortante no se comprueba y la flecha "
-          f"se evalúa con la carga por defecto de 10 kN/m (δ = {dflt.deflection_mm:.2f} mm). Pasa siempre esos datos.")
+    for V in (150.0, 5000.0):
+        rv = optimize_beam(BeamOptimizationInput(L_m=L, M_Ed_kNm=M, w_service_kN_m=w, V_Ed_kN=V, section_family="W"))
+        print(f"Con V_Ed = {V:.0f} kN: {rv.best_section}"
+              + (" — ningún W de la base resiste ese cortante (φVn = 0,9·0,6·Fy·d·tw)." if not rv.is_feasible
+                 else (" — el mismo perfil: el cortante no gobierna." if rv.best_section == res.best_section
+                       else f" — el cortante obliga a subir desde {res.best_section}.")))
+    dflt = optimize_beam(BeamOptimizationInput(L_m=L, M_Ed_kNm=M, section_family="W"))
+    print(f"Sin w_service: {dflt.best_section} — la flecha se evalúa con la carga por defecto de 10 kN/m "
+          f"(δ = {dflt.deflection_mm:.2f} mm), no con la carga de servicio real.")
 
 
 if __name__ == "__main__":
