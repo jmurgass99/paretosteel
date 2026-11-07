@@ -1,6 +1,0 @@
-  madre     d_g  Z código   Z neta código/neta T código T real  M_pre M_post
-  IPE300    450       705      871       0.809      150     75    250    213
-  W14X30    526       866     1097       0.790      176     88    307    261
-  HEB300    450      2457     2676       0.918      150     75    872    741
-
-Z del código (solo alas) frente al de la sección neta: menor en los tres casos, del lado seguro en flexión pura; pero el 0,85 fijo no sustituye las comprobaciones de la T, del Vierendeel ni del montante. Estado declarado por el módulo: experimental.

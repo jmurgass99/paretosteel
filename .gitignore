@@ -63,3 +63,7 @@ Documentos de referencia */
 
 # salidas de ficheros de los ejemplos (JSON, memorias)
 examples/out/
+
+# salida de los ejemplos
+examples/output/
+examples/out/
